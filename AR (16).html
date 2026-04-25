@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AR Nova — Il tuo ecosistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --space:#050811;
+  --space2:#0a0e1a;
+  --core-warm:#ffb547;
+  --core-hot:#ff6e4a;
+  --orbit:rgba(176,132,255,0.15);
+  --text:#e6eef9;
+  --muted:#6b7688;
+  --card:rgba(21,27,35,0.85);
+  --border:rgba(255,255,255,0.1);
+  --accent:#b084ff;
+  --accent2:#6ee7ff;
+  --ok:#00ff88;
+  --err:#ff5577;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Sora',-apple-system,sans-serif;
+  background:var(--space);
+  color:var(--text);
+  font-weight:400;
+  letter-spacing:-0.01em;
+  position:relative;
+}
+
+.stars{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at center, rgba(176,132,255,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 30%, rgba(110,231,255,0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 70%, rgba(255,181,71,0.04) 0%, transparent 40%),
+    var(--space);
+  z-index:0;
+}
+.stars::before,.stars::after{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, white, transparent),
+    radial-gradient(1px 1px at 60% 70%, white, transparent),
+    radial-gradient(1px 1px at 50% 50%, white, transparent),
+    radial-gradient(1px 1px at 80% 10%, white, transparent),
+    radial-gradient(1px 1px at 90% 60%, white, transparent),
+    radial-gradient(2px 2px at 33% 44%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.6), transparent);
+  background-size:400px 400px;
+  background-repeat:repeat;
+  opacity:0.6;
+  animation:twinkle 8s infinite alternate ease-in-out;
+}
+.stars::after{
+  background-size:650px 650px;
+  animation-duration:12s;
+  animation-delay:-4s;
+  opacity:0.4;
+}
+@keyframes twinkle{
+  0%{opacity:0.3}
+  100%{opacity:0.7}
+}
+
+.chrome{
+  position:fixed;
+  top:24px;left:24px;right:24px;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:20;pointer-events:none;
+}
+.chrome > *{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:12px;font-size:0.88rem;font-weight:500;color:var(--muted)}
+.brand-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--core-warm);
+  box-shadow:0 0 12px rgba(255,181,71,0.5);
+  animation:pulse-dot 2s infinite;
+}
+@keyframes pulse-dot{
+  0%,100%{opacity:0.6;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.2)}
+}
+.chrome-actions{display:flex;gap:8px}
+.chip{
+  background:var(--card);border:1px solid var(--border);color:var(--muted);
+  padding:8px 14px;border-radius:20px;
+  font-family:inherit;font-size:0.78rem;cursor:pointer;
+  transition:all 0.2s;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.chip:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+
+.solar{
+  position:relative;
+  width:100vw;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  z-index:2;
+}
+.system{
+  position:relative;
+  width:min(90vmin, 820px);
+  height:min(90vmin, 820px);
+}
+
+.orbit{
+  position:absolute;
+  top:50%;left:50%;
+  border-radius:50%;
+  border:1px solid var(--orbit);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+.orbit::before{
+  content:'';position:absolute;inset:-1px;border-radius:50%;
+  border:1px dashed rgba(110,231,255,0.08);
+}
+.orbit-1{width:38%;height:38%}
+.orbit-2{width:60%;height:60%}
+.orbit-3{width:82%;height:82%}
+.orbit-4{width:100%;height:100%}
+
+/* Satellites canvas fills the whole system — needed so absolute positioning is based on the right bounds */
+#satellites{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+#satellites .satellite-wrap{pointer-events:auto}
+
+.core{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(28vmin, 240px);
+  height:min(28vmin, 240px);
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #fff5d8 0%, var(--core-warm) 30%, var(--core-hot) 70%, #a33a1e 100%);
+  box-shadow:
+    0 0 80px rgba(255,181,71,0.45),
+    0 0 160px rgba(255,110,74,0.25),
+    0 0 240px rgba(255,110,74,0.12),
+    inset -20px -20px 60px rgba(163,58,30,0.5),
+    inset 20px 20px 60px rgba(255,245,216,0.3);
+  z-index:5;
+  animation:core-pulse 6s infinite ease-in-out;
+  cursor:pointer;
+  transition:transform 0.3s;
+}
+.core:hover{transform:translate(-50%,-50%) scale(1.04)}
+@keyframes core-pulse{
+  0%,100%{
+    box-shadow:
+      0 0 80px rgba(255,181,71,0.45),
+      0 0 160px rgba(255,110,74,0.25),
+      0 0 240px rgba(255,110,74,0.12),
+      inset -20px -20px 60px rgba(163,58,30,0.5),
+      inset 20px 20px 60px rgba(255,245,216,0.3);
+  }
+  50%{
+    box-shadow:
+      0 0 100px rgba(255,181,71,0.55),
+      0 0 200px rgba(255,110,74,0.3),
+      0 0 320px rgba(255,110,74,0.18),
+      inset -20px -20px 60px rgba(163,58,30,0.5),
+      inset 20px 20px 70px rgba(255,245,216,0.4);
+  }
+}
+.core-surface{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 20% 30%, transparent 10%, rgba(255,245,216,0.1) 12%, transparent 14%),
+    radial-gradient(circle at 70% 20%, transparent 8%, rgba(163,58,30,0.3) 10%, transparent 12%),
+    radial-gradient(circle at 50% 60%, transparent 6%, rgba(255,200,100,0.2) 8%, transparent 10%),
+    radial-gradient(circle at 30% 75%, transparent 4%, rgba(163,58,30,0.25) 6%, transparent 8%);
+  opacity:0.8;
+  animation:surface-drift 20s infinite linear;
+}
+@keyframes surface-drift{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+
+.core-content{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(28vmin, 240px);
+  height:min(28vmin, 240px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:6;pointer-events:none;text-align:center;padding:8%;
+}
+.core-initials{
+  font-family:'Sora',sans-serif;
+  font-weight:800;
+  font-size:clamp(2rem, 5vmin, 3rem);
+  color:#fff;
+  text-shadow:0 4px 20px rgba(163,58,30,0.9), 0 0 30px rgba(255,245,216,0.5);
+  letter-spacing:-0.04em;
+  line-height:1;
+  margin-bottom:6px;
+}
+.core-label{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:clamp(0.9rem, 2.2vmin, 1.3rem);
+  color:#fff8e8;
+  text-shadow:0 2px 12px rgba(163,58,30,0.8), 0 0 20px rgba(255,245,216,0.4);
+  line-height:1.2;
+  max-width:90%;
+  transition:opacity 1s ease;
+  letter-spacing:0.02em;
+}
+.core-label.fade{opacity:0}
+
+.satellite{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  width:clamp(64px, 9.5vmin, 96px);
+  height:clamp(64px, 9.5vmin, 96px);
+  border-radius:50%;
+  cursor:pointer;
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  z-index:7;
+}
+.satellite:hover{transform:translate(-50%,-50%) scale(1.15)}
+.sat-body{
+  position:relative;width:100%;height:100%;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.6rem, 4vmin, 2.2rem);
+  line-height:1;
+  border:1px solid var(--border);
+  transition:all 0.3s;
+}
+.satellite:hover .sat-body{
+  border-color:var(--accent2);
+  box-shadow:0 0 24px rgba(110,231,255,0.35), 0 8px 24px rgba(0,0,0,0.4);
+}
+.sat-photo .sat-body{
+  background:radial-gradient(circle at 30% 30%, #b084ff 0%, #5d3ba5 60%, #2a1558 100%);
+  box-shadow:0 0 20px rgba(176,132,255,0.3), inset -4px -4px 12px rgba(0,0,0,0.4);
+}
+.sat-voice .sat-body{
+  background:radial-gradient(circle at 30% 30%, #6ee7ff 0%, #2b8fa8 60%, #0d3b4a 100%);
+  box-shadow:0 0 20px rgba(110,231,255,0.3), inset -4px -4px 12px rgba(0,0,0,0.4);
+}
+.sat-text .sat-body{
+  background:radial-gradient(circle at 30% 30%, #ffa8d4 0%, #b53f85 60%, #4a1935 100%);
+  box-shadow:0 0 20px rgba(255,168,212,0.3), inset -4px -4px 12px rgba(0,0,0,0.4);
+}
+.sat-creative .sat-body{
+  background:radial-gradient(circle at 30% 30%, #00ff88 0%, #00a858 60%, #0a4a2d 100%);
+  box-shadow:0 0 20px rgba(0,255,136,0.3), inset -4px -4px 12px rgba(0,0,0,0.4);
+}
+.sat-soon .sat-body{
+  background:radial-gradient(circle at 30% 30%, #4a5266 0%, #2b303c 60%, #15181f 100%);
+  box-shadow:inset -4px -4px 12px rgba(0,0,0,0.4);
+  opacity:0.55;filter:grayscale(0.3);
+}
+.sat-soon{cursor:default}
+.sat-soon:hover{transform:translate(-50%,-50%) scale(1)}
+.sat-soon:hover .sat-body{border-color:var(--border);box-shadow:inset -4px -4px 12px rgba(0,0,0,0.4)}
+
+.sat-label{
+  position:absolute;
+  top:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);
+  font-size:clamp(0.66rem, 1.5vmin, 0.76rem);
+  font-weight:500;color:var(--text);
+  background:rgba(10,14,26,0.88);border:1px solid var(--border);
+  padding:3px 9px;border-radius:10px;
+  white-space:nowrap;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0.92;transition:opacity 0.2s, transform 0.2s;pointer-events:none;
+  max-width:160px;
+  overflow:hidden;text-overflow:ellipsis;
+  text-align:center;
+}
+.satellite:hover .sat-label{opacity:1;transform:translateX(-50%) scale(1.05)}
+/* Add-slot label is a hint, more subtle */
+.sat-soon .sat-label{opacity:0.55;font-style:italic}
+
+@keyframes orbit-spin{ /* kept for backward compat, not used */
+  from{transform:translate(-50%,-50%) rotate(0deg)}
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+
+/* === Whiteboard layout: satellites are absolutely positioned at user-defined (x,y) === */
+.satellite-wrap{
+  position:absolute;
+  top:50%;left:50%; /* fallback, actual values set via style */
+  transform:translate(-50%,-50%);
+  width:clamp(64px, 9.5vmin, 96px);
+  height:clamp(64px, 9.5vmin, 96px);
+  z-index:7;
+  transition:filter 0.2s;
+}
+.satellite-wrap .satellite{
+  position:absolute;
+  inset:0;
+  transform:none;
+}
+.satellite-wrap .satellite:hover{
+  transform:scale(1.12);
+}
+.satellite-wrap.dragging{
+  z-index:20;
+  filter:drop-shadow(0 12px 28px rgba(0,0,0,0.6));
+  cursor:grabbing !important;
+}
+.satellite-wrap.dragging .satellite{
+  transform:scale(1.1);
+  transition:none;
+}
+.satellite-wrap.dragging *{
+  cursor:grabbing !important;
+}
+/* Custom (editable) planets show grab cursor */
+.satellite-wrap.draggable .satellite{cursor:grab}
+.satellite-wrap.draggable .satellite:active{cursor:grabbing}
+
+/* Long-press progress ring */
+.longpress-ring{
+  position:absolute;
+  inset:-8px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.15s;
+}
+.longpress-ring circle{
+  fill:none;
+  stroke:var(--err);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-dasharray:301.59;
+  stroke-dashoffset:301.59;
+  transform:rotate(-90deg);
+  transform-origin:center;
+  filter:drop-shadow(0 0 6px var(--err));
+}
+.satellite-wrap.pressing .longpress-ring{opacity:1}
+.satellite-wrap.pressing .longpress-ring circle{
+  animation:ringFill 3s linear forwards;
+}
+.satellite-wrap.pressing .satellite{
+  animation:pressShake 0.5s ease-in-out infinite;
+}
+@keyframes ringFill{
+  to{stroke-dashoffset:0}
+}
+@keyframes pressShake{
+  0%,100%{transform:scale(1) translate(0,0)}
+  25%{transform:scale(1.02) translate(-1px,1px)}
+  75%{transform:scale(1.02) translate(1px,-1px)}
+}
+
+/* Delete flash when long-press fires */
+.satellite-wrap.deleting{
+  animation:deleteFlash 0.8s forwards;
+}
+@keyframes deleteFlash{
+  0%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  50%{transform:translate(-50%,-50%) scale(1.3);opacity:0.6;filter:brightness(2)}
+  100%{transform:translate(-50%,-50%) scale(0);opacity:0}
+}
+
+.stats-strip{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%);
+  display:flex;gap:8px;z-index:20;pointer-events:auto;
+}
+.stat-pill{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:8px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:0.78rem;color:var(--muted);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.stat-pill strong{color:var(--text);font-weight:600}
+
+.modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(5,8,17,0.9);z-index:100;
+  align-items:flex-start;justify-content:center;
+  padding:40px 20px;overflow-y:auto;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.modal.show{display:flex}
+.modal-panel{
+  background:var(--space2);border:1px solid var(--border);
+  border-radius:20px;padding:32px 36px;
+  max-width:680px;width:100%;position:relative;
+  box-shadow:0 32px 80px rgba(0,0,0,0.7);
+}
+.modal-panel h2{font-size:1.4rem;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px}
+.modal-panel .modal-sub{color:var(--muted);font-size:0.86rem;margin-bottom:22px;line-height:1.5}
+.modal-close{
+  position:absolute;top:18px;right:22px;
+  background:none;border:none;color:var(--muted);
+  font-size:1.8rem;cursor:pointer;transition:color 0.2s;
+  width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+}
+.modal-close:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+.modal-group{border-top:1px solid var(--border);padding-top:18px;margin-top:18px}
+.modal-group:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.modal-group-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.modal-group-head h3{font-size:0.95rem;font-weight:500}
+.test-status{font-size:0.72rem;color:var(--muted);padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.04)}
+.test-status.ok{color:var(--ok);background:rgba(0,255,136,0.1)}
+.test-status.err{color:var(--err);background:rgba(255,85,119,0.1)}
+.test-status.testing{color:#ffb547;background:rgba(255,181,71,0.1)}
+
+label{display:block;color:var(--muted);font-size:0.72rem;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em}
+input[type=text],input[type=password]{
+  width:100%;background:rgba(255,255,255,0.03);color:var(--text);
+  border:1px solid var(--border);border-radius:10px;padding:11px 14px;
+  font-family:inherit;font-size:0.9rem;transition:border-color 0.2s;
+}
+input:focus{outline:none;border-color:var(--accent);background:rgba(255,255,255,0.05)}
+.hint{font-size:0.74rem;color:var(--muted);margin-top:6px;line-height:1.5}
+.hint a{color:var(--accent2);text-decoration:none}
+.hint a:hover{text-decoration:underline}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.row-2{grid-template-columns:1fr}}
+
+.btn{
+  background:rgba(255,255,255,0.04);color:var(--text);
+  border:1px solid var(--border);padding:10px 18px;
+  border-radius:10px;font-family:inherit;font-size:0.85rem;
+  font-weight:500;cursor:pointer;transition:all 0.2s;
+}
+.btn:hover{background:rgba(255,255,255,0.07);border-color:var(--accent)}
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:var(--space);border:none;font-weight:600;
+}
+.btn.primary:hover{box-shadow:0 8px 24px rgba(176,132,255,0.3)}
+.modal-actions{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}
+.modal-actions-group{display:flex;gap:8px;flex-wrap:wrap}
+
+.toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(30px);
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:12px 20px;font-size:0.85rem;
+  box-shadow:0 12px 32px rgba(0,0,0,0.5);
+  z-index:200;opacity:0;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  pointer-events:none;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.ok{border-color:var(--ok);color:var(--ok)}
+.toast.err{border-color:var(--err);color:var(--err)}
+
+@media(max-width:640px){
+  .stats-strip{flex-direction:column;gap:4px;bottom:12px}
+  .stat-pill{font-size:0.7rem;padding:6px 12px}
+  .chrome{top:14px;left:14px;right:14px}
+}
+
+/* === Name input required state === */
+input.required-missing{
+  border-color:var(--err) !important;
+  background:rgba(255,85,119,0.08) !important;
+  animation:shake 0.4s;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+label.req::after{content:' *';color:var(--err);font-weight:700}
+
+/* === Key-Value settings editor === */
+.kv-editor{
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:8px;
+}
+.kv-row{
+  display:grid;
+  grid-template-columns:minmax(0,0.9fr) minmax(0,1.4fr) 36px;
+  gap:8px;align-items:center;
+}
+.kv-row input{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.82rem;
+  padding:9px 12px;
+}
+.kv-row input.kv-key{color:var(--accent2)}
+.kv-row .kv-remove{
+  width:36px;height:36px;
+  background:rgba(255,85,119,0.08);
+  border:1px solid rgba(255,85,119,0.2);
+  color:var(--err);
+  border-radius:9px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;transition:all 0.15s;
+}
+.kv-row .kv-remove:hover{
+  background:rgba(255,85,119,0.2);
+  border-color:var(--err);
+}
+.kv-add{
+  align-self:flex-start;
+  background:rgba(176,132,255,0.06);
+  border:1px dashed rgba(176,132,255,0.3);
+  color:var(--accent);
+  padding:8px 14px;border-radius:9px;
+  font-family:inherit;font-size:0.8rem;font-weight:500;
+  cursor:pointer;transition:all 0.15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.kv-add:hover{
+  background:rgba(176,132,255,0.12);
+  border-style:solid;
+}
+.kv-empty{
+  color:var(--muted);font-size:0.78rem;
+  padding:10px 0;font-style:italic;
+}
+.kv-examples{
+  background:rgba(110,231,255,0.04);
+  border:1px solid rgba(110,231,255,0.15);
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:0.74rem;color:var(--muted);
+  line-height:1.6;margin-top:10px;
+}
+.kv-examples code{
+  color:var(--accent2);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;
+}
+
+/* === Collapsible section === */
+.collapsible-head{
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;user-select:none;
+  padding:4px 0;
+}
+.collapsible-head .chev{
+  transition:transform 0.2s;
+  color:var(--muted);font-size:0.8rem;
+}
+.collapsible.open .chev{transform:rotate(90deg)}
+.collapsible-body{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.3s ease;
+}
+.collapsible.open .collapsible-body{max-height:2000px}
+.collapsible-head h3{margin:0;font-size:0.95rem;font-weight:500;color:var(--text)}
+.collapsible-head .sub{color:var(--muted);font-size:0.75rem;margin-left:auto}
+
+/* === Planet context menu === */
+.planet-menu{
+  position:fixed;z-index:150;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px;
+  min-width:200px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.6);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  display:none;
+  font-size:0.85rem;
+}
+.planet-menu.show{display:block;animation:menuIn 0.15s ease-out}
+@keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.planet-menu-title{
+  padding:8px 10px 6px;
+  font-size:0.72rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.06em;
+  border-bottom:1px solid var(--border);
+  margin-bottom:4px;
+  display:flex;align-items:center;gap:8px;
+}
+.planet-menu-title .mn-emoji{font-size:1.1rem}
+.planet-menu-title .mn-name{color:var(--text);text-transform:none;letter-spacing:0;font-weight:500;font-size:0.82rem}
+.planet-menu-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  color:var(--text);
+  transition:background 0.1s;
+}
+.planet-menu-item:hover{background:rgba(255,255,255,0.06)}
+.planet-menu-item.danger{color:var(--err)}
+.planet-menu-item.danger:hover{background:rgba(255,85,119,0.1)}
+.planet-menu-item .mn-ic{font-size:1rem;width:20px;text-align:center}
+.planet-menu-divider{height:1px;background:var(--border);margin:4px 6px}
+
+/* Visual cue that a custom planet is clickable for menu */
+.satellite.editable{position:relative}
+.satellite.editable::after{
+  content:'';
+  position:absolute;top:-2px;right:-2px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 8px var(--accent);
+  opacity:0;transition:opacity 0.2s;
+}
+.satellite.editable:hover::after{opacity:0.8}
+
+/* Filename hint under custom tool label */
+.sat-filename{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.62rem;
+  color:var(--muted);
+  opacity:0.7;
+  margin-top:2px;
+  max-width:180px;
+  overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* === Empty state === */
+.empty-hint{
+  position:fixed;
+  bottom:80px;left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  z-index:15;pointer-events:none;
+  opacity:0;animation:emptyIn 0.8s 0.6s ease-out forwards;
+}
+.empty-hint .empty-icon{
+  font-size:2.4rem;margin-bottom:8px;
+  filter:drop-shadow(0 0 12px rgba(176,132,255,0.5));
+}
+.empty-hint .empty-title{
+  font-size:1rem;color:var(--text);
+  font-weight:500;margin-bottom:4px;
+}
+.empty-hint .empty-sub{
+  font-size:0.82rem;color:var(--muted);
+}
+.empty-hint .empty-sub code{
+  background:rgba(110,231,255,0.08);
+  color:var(--accent2);
+  padding:1px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.76rem;
+}
+.empty-hint .empty-sub strong{color:var(--accent)}
+@keyframes emptyIn{
+  from{opacity:0;transform:translate(-50%,10px)}
+  to{opacity:1;transform:translate(-50%,0)}
+}
+body.has-tools .empty-hint{display:none}
+
+/* === Floating Add button === */
+.add-fab{
+  position:fixed;
+  bottom:80px;right:24px;
+  width:56px;height:56px;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:var(--space);
+  font-size:1.6rem;font-weight:700;
+  cursor:pointer;z-index:18;
+  box-shadow:0 8px 24px rgba(176,132,255,0.4), 0 0 0 0 rgba(176,132,255,0.6);
+  transition:transform 0.2s, box-shadow 0.2s;
+  display:flex;align-items:center;justify-content:center;
+  animation:fabPulse 2.4s infinite;
+}
+.add-fab:hover{
+  transform:scale(1.08) rotate(90deg);
+  box-shadow:0 12px 32px rgba(176,132,255,0.6);
+}
+.add-fab span{display:block;transition:transform 0.3s}
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 8px 24px rgba(176,132,255,0.4), 0 0 0 0 rgba(176,132,255,0.6)}
+  50%{box-shadow:0 8px 24px rgba(176,132,255,0.4), 0 0 0 14px rgba(176,132,255,0)}
+}
+@media(max-width:640px){
+  .add-fab{bottom:120px;right:16px;width:52px;height:52px}
+}
+
+/* === Drop overlay (drag & drop) === */
+.drop-overlay{
+  position:fixed;inset:0;
+  background:rgba(5,8,17,0.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  z-index:250;
+  display:none;
+  align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.drop-overlay.show{display:flex;animation:dropIn 0.2s ease-out}
+@keyframes dropIn{from{opacity:0}to{opacity:1}}
+.drop-panel{
+  border:3px dashed var(--accent);
+  border-radius:24px;
+  padding:50px 70px;
+  background:rgba(176,132,255,0.08);
+  text-align:center;
+  animation:dropFloat 2s ease-in-out infinite;
+}
+@keyframes dropFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.drop-icon{
+  font-size:4rem;margin-bottom:14px;
+  color:var(--accent);
+  filter:drop-shadow(0 0 20px var(--accent));
+}
+.drop-title{
+  font-size:1.6rem;font-weight:600;
+  color:var(--text);margin-bottom:6px;
+  letter-spacing:-0.02em;
+}
+.drop-sub{
+  font-size:0.95rem;color:var(--muted);
+}
+
+/* === Upload progress bar === */
+.upload-progress{
+  position:fixed;
+  bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(100px);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px 24px;
+  min-width:320px;max-width:90vw;
+  box-shadow:0 16px 48px rgba(0,0,0,0.6);
+  z-index:240;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  opacity:0;
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  pointer-events:none;
+}
+.upload-progress.show{
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+.up-title{
+  font-size:0.85rem;font-weight:500;
+  color:var(--text);margin-bottom:4px;
+}
+.up-file{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.74rem;color:var(--muted);
+  margin-bottom:10px;
+  max-width:400px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.up-bar{
+  height:6px;background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;
+  margin-bottom:6px;
+}
+.up-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:3px;
+  transition:width 0.2s ease-out;
+  box-shadow:0 0 10px rgba(176,132,255,0.6);
+}
+.up-pct{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;color:var(--muted);
+  text-align:right;
+}
+.upload-progress.done .up-fill{
+  background:linear-gradient(90deg,var(--ok),var(--ok));
+  box-shadow:0 0 10px var(--ok);
+}
+.upload-progress.deleting .up-fill{
+  background:linear-gradient(90deg,var(--err),#ff8899);
+  box-shadow:0 0 10px var(--err);
+}
+.upload-progress.deleting.done .up-fill{
+  background:linear-gradient(90deg,var(--err),var(--err));
+}
+.upload-progress.deleting .up-title{color:var(--err)}
+
+/* Help strip at the top left — interaction reminder */
+.help-strip{
+  position:fixed;
+  top:80px;left:24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:0.72rem;
+  color:var(--muted);
+  line-height:1.7;
+  z-index:18;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  max-width:240px;
+  opacity:0.85;
+  transition:opacity 0.2s;
+}
+.help-strip:hover{opacity:1}
+.help-strip strong{color:var(--text);font-weight:500}
+.help-strip .hs-close{
+  position:absolute;top:4px;right:6px;
+  background:none;border:none;color:var(--muted);
+  cursor:pointer;font-size:0.9rem;padding:2px 6px;
+  border-radius:4px;
+}
+.help-strip .hs-close:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+.help-strip.hidden{display:none}
+@media(max-width:640px){.help-strip{display:none}}
+
+/* === Import-from-original steps === */
+.import-steps{margin-top:14px;display:flex;flex-direction:column;gap:14px}
+.import-step{
+  display:flex;gap:12px;align-items:flex-start;
+}
+.import-step-num{
+  flex-shrink:0;
+  width:28px;height:28px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:var(--space);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:0.85rem;
+}
+.import-step-body{
+  flex:1;min-width:0;
+  font-size:0.85rem;line-height:1.6;
+  color:var(--text);
+}
+.import-step-body code{
+  background:rgba(110,231,255,0.08);
+  color:var(--accent2);
+  padding:1px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.76rem;
+}
+.import-step-body strong{color:var(--text)}
+.import-snippet{
+  margin-top:10px;
+  background:rgba(5,8,17,0.6);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 12px;
+}
+.import-snippet code{
+  display:block;
+  background:none;padding:0;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;color:var(--accent2);
+  word-break:break-all;
+  line-height:1.5;
+}
+
+/* === Import Wizard (dedicated modal) === */
+.iw-steps{
+  display:flex;flex-direction:column;gap:18px;
+  margin-top:8px;
+}
+.iw-step{
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  transition:border-color 0.2s;
+}
+.iw-step:hover{border-color:rgba(176,132,255,0.3)}
+.iw-step-head{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:8px;
+}
+.iw-step-head strong{
+  font-size:1rem;color:var(--text);font-weight:600;
+  letter-spacing:-0.01em;
+}
+.iw-num{
+  flex-shrink:0;
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:var(--space);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:0.9rem;
+}
+.iw-step-body{
+  font-size:0.88rem;line-height:1.6;
+  color:var(--text);
+  padding-left:40px;
+}
+.iw-step-body code{
+  background:rgba(110,231,255,0.08);
+  color:var(--accent2);
+  padding:1px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.78rem;
+}
+.iw-step-body kbd{
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--border);
+  border-bottom-width:2px;
+  color:var(--text);
+  padding:1px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.75rem;
+  margin:0 2px;
+}
+.iw-step-note{
+  margin-top:10px;
+  font-size:0.78rem;color:var(--muted);
+  background:rgba(255,181,71,0.06);
+  border-left:3px solid #ffb547;
+  padding:8px 12px;
+  border-radius:6px;
+  line-height:1.55;
+}
+.iw-snippet{
+  margin-top:10px;
+  background:rgba(5,8,17,0.7);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+}
+.iw-snippet pre{
+  margin:0;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;color:var(--accent2);
+  line-height:1.55;
+  white-space:pre-wrap;word-break:break-word;
+}
+#iwPaste{
+  width:100%;min-height:120px;
+  background:rgba(5,8,17,0.5);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.78rem;
+  line-height:1.5;
+  resize:vertical;
+}
+#iwPaste:focus{border-color:var(--accent);outline:none}
+.iw-action-row{
+  display:flex;gap:10px;margin-top:10px;
+  align-items:center;flex-wrap:wrap;
+}
+
+/* === Diagnostic display === */
+.diag-block{
+  background:rgba(5,8,17,0.5);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+  margin-top:12px;
+}
+.diag-block-title{
+  font-size:0.78rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.06em;
+  margin-bottom:8px;font-weight:500;
+}
+.diag-kv{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.78rem;
+  line-height:1.7;
+  color:var(--text);
+}
+.diag-kv .dk{color:var(--accent2)}
+.diag-kv .dv{color:var(--text)}
+.diag-kv .dempty{color:var(--err);font-style:italic}
+.diag-help{
+  margin-top:14px;
+  padding:12px 14px;
+  background:rgba(110,231,255,0.05);
+  border-left:3px solid var(--accent2);
+  border-radius:6px;
+  font-size:0.82rem;line-height:1.6;
+  color:var(--text);
+}
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="chrome">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span>AR Nova · Il tuo ecosistema</span>
+  </div>
+  <div class="chrome-actions">
+    <button class="chip" id="openContext">🔗 Context</button>
+    <button class="chip" id="openSettings">⚙ Impostazioni</button>
+  </div>
+</div>
+
+<div class="help-strip" id="helpStrip">
+  <button class="hs-close" id="helpClose" title="Nascondi">×</button>
+  <strong>📖 Interazioni</strong><br>
+  <strong>Click</strong> — apri il tool<br>
+  <strong>Drag</strong> — sposta il pianeta<br>
+  <strong>Long-press 3s</strong> — elimina<br>
+  <strong>Click destro</strong> — modifica
+</div>
+
+<div class="solar">
+  <div class="system">
+    <div class="orbit orbit-1"></div>
+    <div class="orbit orbit-2"></div>
+    <div class="orbit orbit-3"></div>
+    <div class="orbit orbit-4"></div>
+
+    <div class="core" id="core">
+      <div class="core-surface"></div>
+    </div>
+    <div class="core-content">
+      <div class="core-initials" id="coreInitials">AR</div>
+      <div class="core-label" id="motivationalText">Non mollare</div>
+    </div>
+
+    <div id="satellites"></div>
+  </div>
+</div>
+
+<div class="stats-strip">
+  <div class="stat-pill">🛠 <strong id="statTools">0</strong> tool</div>
+  <div class="stat-pill">🚀 <strong id="statLaunches">0</strong> launch</div>
+  <div class="stat-pill">⭐ Ultimo: <strong id="statLast">—</strong></div>
+</div>
+
+<div class="empty-hint" id="emptyHint">
+  <div class="empty-icon">🌌</div>
+  <div class="empty-title">Il tuo sistema è vuoto</div>
+  <div class="empty-sub">Trascina qui un file <code>.html</code> oppure clicca <strong>➕</strong> — poi trascina i pianeti dove vuoi per creare il tuo flusso</div>
+</div>
+
+<button class="add-fab" id="addFab" title="Aggiungi uno strumento (trascina un file o clicca qui)">
+  <span>➕</span>
+</button>
+<input type="file" id="globalFileInput" accept=".html,.htm" style="display:none" multiple>
+
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-panel">
+    <div class="drop-icon">⬇</div>
+    <div class="drop-title">Rilascia il file HTML</div>
+    <div class="drop-sub">Diventerà un nuovo pianeta in orbita</div>
+  </div>
+</div>
+
+<div class="upload-progress" id="uploadProgress">
+  <div class="up-title" id="upTitle">Caricamento file…</div>
+  <div class="up-file" id="upFile"></div>
+  <div class="up-bar"><div class="up-fill" id="upFill"></div></div>
+  <div class="up-pct" id="upPct">0%</div>
+</div>
+
+<div class="modal" id="settingsModal">
+  <div class="modal-panel">
+    <button class="modal-close" id="settingsClose">×</button>
+    <h2>⚙ Impostazioni AR Nova</h2>
+    <div class="modal-sub">Qui gestisci il <strong>nucleo</strong> e le <strong>chiavi globali</strong> ereditate automaticamente da ogni strumento che carichi.</div>
+
+    <div class="modal-group">
+      <div class="modal-group-head"><h3>👤 Il tuo nucleo</h3></div>
+      <div class="row-2">
+        <div>
+          <label>Le tue iniziali al centro</label>
+          <input type="text" id="userInitials" placeholder="AR" maxlength="3">
+        </div>
+        <div>
+          <label>Frase motivazionale custom</label>
+          <input type="text" id="customMotto" placeholder="es. Costruisci il tuo sogno">
+        </div>
+      </div>
+      <div class="hint">Se lasci vuoto il motto, vedrai 8 frasi diverse a rotazione.</div>
+    </div>
+
+    <div class="modal-group collapsible open" id="globalKvCollapsible">
+      <div class="collapsible-head" id="globalKvToggle">
+        <span class="chev">▶</span>
+        <h3>🔑 Chiavi globali (ereditate da tutti gli strumenti)</h3>
+        <span class="sub" id="globalKvCount">0 chiavi</span>
+      </div>
+      <div class="collapsible-body">
+        <div class="hint" style="margin-top:10px;margin-bottom:4px">
+          Queste chiavi vengono iniettate <strong style="color:var(--text)">automaticamente in ogni strumento</strong> quando lo apri.<br>
+          Le impostazioni specifiche di un pianeta (click destro → Modifica) possono sovrascriverle solo per quel pianeta.
+        </div>
+        <div class="kv-editor" id="globalKvEditor"></div>
+        <button class="kv-add" id="globalKvAdd">＋ Aggiungi chiave globale</button>
+        <div class="kv-examples">
+          <strong style="color:var(--text)">Esempi di chiavi comuni che userai per più tool:</strong><br>
+          <code>ar_apiKey</code> = la tua chiave kie.ai · <code>ar_cldCloud</code> = cloud Cloudinary · <code>ar_cldPreset</code> = preset Cloudinary · <code>openai_key</code> · <code>gemini_key</code>…<br>
+          <span style="opacity:0.7">💡 Inseriscile una volta qui — ogni nuovo tool le avrà automaticamente.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-group">
+      <div class="modal-group-head"><h3>🗑 Zona rossa</h3></div>
+      <div class="hint" style="margin-bottom:10px">Cancella tutti i tool caricati e riparti da un sistema vuoto. Le chiavi globali e il nucleo restano.</div>
+      <button class="btn" id="resetAllTools" style="border-color:rgba(255,85,119,0.3);color:var(--err)">🗑 Svuota l'ecosistema (rimuovi tutti i tool)</button>
+    </div>
+
+    <div class="modal-actions">
+      <div class="modal-actions-group">
+        <button class="btn" id="exportSettings">📤 Export tutto</button>
+        <label for="importSettings" class="btn" style="cursor:pointer">📥 Import</label>
+        <input type="file" id="importSettings" accept=".json" style="display:none">
+      </div>
+      <div class="modal-actions-group">
+        <button class="btn primary" id="saveSettings">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="contextModal">
+  <div class="modal-panel">
+    <button class="modal-close" id="contextClose">×</button>
+    <h2>🔗 Context per le chat future</h2>
+    <div class="modal-sub">Copia e incolla come primo messaggio in una nuova chat Claude.</div>
+    <textarea id="contextText" style="width:100%;min-height:320px;background:rgba(255,255,255,0.03);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.6;resize:vertical" readonly></textarea>
+    <div class="modal-actions">
+      <div class="modal-actions-group"></div>
+      <div class="modal-actions-group">
+        <button class="btn" id="downloadContext">⬇ .md</button>
+        <button class="btn primary" id="copyContext">📋 Copia</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="addToolModal">
+  <div class="modal-panel">
+    <button class="modal-close" id="addToolClose">×</button>
+    <h2 id="addToolTitle">➕ Aggiungi un tool all'ecosistema</h2>
+    <div class="modal-sub" id="addToolSub">Carica un file HTML dal disco e dagli un nome. Viene memorizzato nel browser e apparirà come pianeta in orbita — con le sue impostazioni dedicate.</div>
+
+    <div class="modal-group" id="fileGroup">
+      <label>File HTML del tool</label>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <label for="newToolFile" class="btn" style="cursor:pointer">📁 Scegli file</label>
+        <input type="file" id="newToolFile" accept=".html,.htm" style="display:none">
+        <span class="hint" id="newToolFileName" style="margin-top:0">Nessun file selezionato</span>
+      </div>
+      <div class="hint" style="margin-top:10px">Cerca in <code style="color:var(--accent2)">Downloads</code> o dove tieni gli HTML. Es: <code style="color:var(--accent2)">AR_Creative.html</code>, <code style="color:var(--accent2)">advoice_video.html</code>.</div>
+    </div>
+
+    <div class="modal-group">
+      <div class="row-2">
+        <div>
+          <label class="req" for="newToolName">Nome dello strumento</label>
+          <input type="text" id="newToolName" placeholder="es. AR Creative" autocomplete="off">
+          <div class="hint" style="margin-top:6px">⚠ Dai un nome riconoscibile — lo vedrai sul pianeta e nel menu.</div>
+        </div>
+        <div>
+          <label>Emoji icona</label>
+          <input type="text" id="newToolEmoji" placeholder="🎬" maxlength="4">
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label>Descrizione breve</label>
+        <input type="text" id="newToolDesc" placeholder="es. Video UGC con Sora 2 e Veo">
+      </div>
+      <div style="margin-top:14px">
+        <label>Colore del pianeta</label>
+        <select id="newToolTheme" style="width:100%;background:rgba(255,255,255,0.03);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-family:inherit;font-size:0.9rem">
+          <option value="photo">🟣 Viola — foto/immagini</option>
+          <option value="voice">🔵 Cyan — voice/audio</option>
+          <option value="text">🩷 Rosa — testo/script</option>
+          <option value="creative">🟢 Verde — video/creative</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-group collapsible" id="settingsCollapsible">
+      <div class="collapsible-head" id="settingsToggle">
+        <span class="chev">▶</span>
+        <h3>🔐 Impostazioni di questo strumento</h3>
+        <span class="sub" id="kvCount">0 impostazioni</span>
+      </div>
+      <div class="collapsible-body">
+        <div class="hint" style="margin-top:10px;margin-bottom:4px">
+          Ogni strumento ha il <strong style="color:var(--text)">suo mondo</strong>: quando aprirai questo pianeta, queste chiavi verranno scritte nel suo localStorage come se le avessi inserite dentro il tool stesso.<br>
+          <span style="opacity:0.7">Le <strong style="color:var(--text)">chiavi globali AR</strong> vengono ereditate automaticamente — qui sotto inserisci solo quelle specifiche o gli override.</span>
+        </div>
+        <div class="kv-editor" id="kvEditor"></div>
+        <button class="kv-add" id="kvAdd">＋ Aggiungi impostazione</button>
+      </div>
+    </div>
+
+    <div class="modal-group collapsible" id="importCollapsible">
+      <div class="collapsible-head" id="importToggle">
+        <span class="chev">▶</span>
+        <h3>📥 Importa impostazioni dal file originale</h3>
+        <span class="sub" style="color:var(--accent2)">copia-incolla</span>
+      </div>
+      <div class="collapsible-body">
+        <div class="hint" style="margin-top:10px">
+          Se avevi già configurato questo tool aprendolo direttamente dal disco, le sue impostazioni sono salvate <strong style="color:var(--text)">nel localStorage di quel file</strong>, non accessibile da AR Nova (è una regola di sicurezza del browser). Con 30 secondi di copia-incolla le porti qui dentro.
+        </div>
+
+        <div class="import-steps">
+          <div class="import-step">
+            <div class="import-step-num">1</div>
+            <div class="import-step-body">
+              <strong>Apri il file originale</strong> del tool (doppio click sul file <code id="importFileName" style="color:var(--accent2)">.html</code> dal disco). Ti si apre nel browser come l'hai sempre aperto.
+            </div>
+          </div>
+          <div class="import-step">
+            <div class="import-step-num">2</div>
+            <div class="import-step-body">
+              <strong>Apri la Console</strong> del browser: <code>F12</code> su Windows/Linux, <code>⌥⌘I</code> su Mac, poi clicca la scheda <strong>Console</strong>.
+            </div>
+          </div>
+          <div class="import-step">
+            <div class="import-step-num">3</div>
+            <div class="import-step-body">
+              <strong>Incolla questo comando</strong> nella console e premi Invio. Copierà tutte le impostazioni negli appunti:
+              <div class="import-snippet">
+                <code id="importSnippetCode">copy(JSON.stringify(Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),null,2))</code>
+                <button type="button" class="btn" id="copySnippet" style="margin-top:8px;font-size:0.78rem;padding:6px 12px">📋 Copia comando</button>
+              </div>
+            </div>
+          </div>
+          <div class="import-step">
+            <div class="import-step-num">4</div>
+            <div class="import-step-body">
+              <strong>Torna qui e incolla</strong> nell'area sotto, poi clicca Importa:
+              <textarea id="importPaste" placeholder='Incolla qui il JSON che hai appena copiato... es. {&#10;  "apiKey": "sk-xxx",&#10;  "cloudName": "my_cloud"&#10;}' style="width:100%;min-height:120px;margin-top:8px;background:rgba(255,255,255,0.03);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.5;resize:vertical"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <button type="button" class="btn primary" id="confirmImport">📥 Importa nelle impostazioni</button>
+                <span id="importStatus" class="test-status" style="align-self:center"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="modal-actions-group"></div>
+      <div class="modal-actions-group">
+        <button class="btn" id="cancelAddTool">Annulla</button>
+        <button class="btn primary" id="confirmAddTool">🚀 Metti in orbita</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="planet-menu" id="planetMenu">
+  <div class="planet-menu-title">
+    <span class="mn-emoji" id="menuEmoji">🛠</span>
+    <span class="mn-name" id="menuName">Tool</span>
+  </div>
+  <div class="planet-menu-item" id="menuLaunch"><span class="mn-ic">🚀</span>Apri strumento</div>
+  <div class="planet-menu-divider"></div>
+  <div class="planet-menu-item" id="menuImport"><span class="mn-ic">🔑</span>Importa le chiavi dal file originale</div>
+  <div class="planet-menu-item" id="menuEdit"><span class="mn-ic">✎</span>Modifica nome / impostazioni</div>
+  <div class="planet-menu-item" id="menuDiag"><span class="mn-ic">🧪</span>Diagnostica</div>
+  <div class="planet-menu-divider"></div>
+  <div class="planet-menu-item danger" id="menuDelete"><span class="mn-ic">🗑</span>Rimuovi dal sistema</div>
+</div>
+
+<!-- Import wizard: dedicated modal, big and clear -->
+<div class="modal" id="importWizardModal">
+  <div class="modal-panel">
+    <button class="modal-close" id="importWizardClose">×</button>
+    <h2>🔑 Porta le tue chiavi dentro <span id="iwToolName">il pianeta</span></h2>
+    <div class="modal-sub">
+      Perché serve: il browser isola il <code style="color:var(--accent2)">localStorage</code> per dominio. Quando apri il tool direttamente dal disco (doppio click) le chiavi vivono lì. Quando lo apri da AR Nova, la pagina ha un dominio <code style="color:var(--accent2)">blob:</code> diverso e non vede quelle chiavi. Questo mago le copia una volta e da quel momento AR Nova le inietta ogni volta che apri il pianeta.
+    </div>
+
+    <div class="iw-steps">
+      <div class="iw-step" id="iwStep1">
+        <div class="iw-step-head"><span class="iw-num">1</span><strong>Apri il file originale</strong></div>
+        <div class="iw-step-body">
+          Doppio click sul file <code id="iwFileName" style="color:var(--accent2)">file.html</code> dal tuo disco — la stessa cosa che facevi prima di AR Nova. Deve essere lo stesso file che vedi usare normalmente.
+          <div class="iw-step-note">
+            Non sei sicuro di quale sia? <strong>È il file che contiene le chiavi</strong>. Se hai più versioni, apri quella che usi di solito e che ha le chiavi già configurate al suo interno.
+          </div>
+        </div>
+      </div>
+
+      <div class="iw-step" id="iwStep2">
+        <div class="iw-step-head"><span class="iw-num">2</span><strong>Apri la Console del browser</strong></div>
+        <div class="iw-step-body">
+          Nella tab dove hai aperto il tool: premi <kbd>F12</kbd> (Windows/Linux) oppure <kbd>⌥</kbd>+<kbd>⌘</kbd>+<kbd>I</kbd> (Mac). Si apre un pannello: clicca la scheda <strong>Console</strong>.
+        </div>
+      </div>
+
+      <div class="iw-step" id="iwStep3">
+        <div class="iw-step-head"><span class="iw-num">3</span><strong>Incolla ed esegui</strong></div>
+        <div class="iw-step-body">
+          Copia questo comando col bottone qui sotto, incollalo nella console, premi Invio. Fa due cose: ti mostra le chiavi trovate e le copia negli appunti.
+          <div class="iw-snippet">
+            <pre id="iwSnippetCode">const __all = Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));
+console.table(__all);
+copy(JSON.stringify(__all,null,2));
+console.log('%c✓ '+Object.keys(__all).length+' chiavi copiate negli appunti','color:lime;font-size:14px');</pre>
+            <button type="button" class="btn primary" id="iwCopyBtn" style="margin-top:10px;width:100%">📋 Copia comando</button>
+          </div>
+          <div class="iw-step-note">
+            ⚠ Se vedi <code>0 chiavi copiate</code>, vuol dire che <strong>hai aperto il file sbagliato</strong> (o il tool non aveva nulla salvato). Apri la versione giusta e riprova.
+          </div>
+        </div>
+      </div>
+
+      <div class="iw-step" id="iwStep4">
+        <div class="iw-step-head"><span class="iw-num">4</span><strong>Torna qui e incolla</strong></div>
+        <div class="iw-step-body">
+          <textarea id="iwPaste" placeholder='Incolla il JSON che hai copiato. Esempio:&#10;{&#10;  "apiKey": "sk-xxxxx",&#10;  "cloudName": "mycloud",&#10;  "preset": "unsigned"&#10;}'></textarea>
+          <div class="iw-action-row">
+            <button type="button" class="btn primary" id="iwImportBtn">💾 Salva nelle impostazioni del pianeta</button>
+            <span id="iwStatus" class="test-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="modal-actions-group"></div>
+      <div class="modal-actions-group">
+        <button class="btn" id="iwCancelBtn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Diagnostic modal: shows what AR Nova knows about the planet -->
+<div class="modal" id="diagModal">
+  <div class="modal-panel">
+    <button class="modal-close" id="diagClose">×</button>
+    <h2>🧪 Diagnostica <span id="diagToolName"></span></h2>
+    <div class="modal-sub">Questo è esattamente quello che AR Nova sa del pianeta. Se le impostazioni sono vuote, il tool si aprirà senza chiavi.</div>
+    <div id="diagContent"></div>
+    <div class="modal-actions">
+      <div class="modal-actions-group"></div>
+      <div class="modal-actions-group">
+        <button class="btn" id="diagCloseBtn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFAULT_TOOLS = [];
+
+/* User-added tools loaded from localStorage.
+   Each entry has the same shape as DEFAULT_TOOLS, plus:
+     - source: 'custom' (to distinguish)
+     - dataUrl: the base64 content of the uploaded HTML (so it runs offline) */
+function loadCustomTools(){
+  try{ return JSON.parse(localStorage.getItem('ar_custom_tools') || '[]'); }
+  catch(e){ return []; }
+}
+function saveCustomTools(list){
+  localStorage.setItem('ar_custom_tools', JSON.stringify(list));
+}
+
+/* Orbit/angle slots available for new tools (auto-assigned in order) */
+const NEW_TOOL_SLOTS = [
+  {orbit:3, angle:45, duration:90},
+  {orbit:2, angle:180, duration:60},
+  {orbit:4, angle:120, duration:120},
+  {orbit:1, angle:0, duration:40},
+  {orbit:3, angle:225, duration:90},
+  {orbit:2, angle:270, duration:60},
+  {orbit:4, angle:300, duration:120},
+  {orbit:1, angle:180, duration:40},
+  {orbit:3, angle:315, duration:90},
+  {orbit:4, angle:60, duration:120}
+];
+
+/* Themes that cycle for visual variety */
+const THEME_CYCLE = ['voice','text','creative','photo'];
+
+function getTools(){
+  const custom = loadCustomTools();
+  return [...DEFAULT_TOOLS, ...custom];
+}
+
+/* The "+" slot to add a new tool — always one more than what exists, up to NEW_TOOL_SLOTS.length */
+function getAddSlot(){
+  const count = getTools().length;
+  if(count >= DEFAULT_TOOLS.length + NEW_TOOL_SLOTS.length) return null;
+  const slotIdx = count - DEFAULT_TOOLS.length;
+  const slot = NEW_TOOL_SLOTS[slotIdx];
+  return {
+    id:'add_new',
+    name:'Aggiungi tool',
+    emoji:'➕',
+    theme:'soon',
+    desc:'Carica un file HTML dal disco per aggiungerlo in orbita',
+    file:null,
+    isAddSlot:true,
+    orbit:slot.orbit, angle:slot.angle, duration:slot.duration
+  };
+}
+
+const PHRASES = [
+  'Non mollare',
+  'Tu ce la farai!',
+  'Un passo alla volta',
+  'Ogni giorno un passo avanti',
+  'La costanza vince tutto',
+  'Costruisci il tuo futuro',
+  'Non arrenderti mai',
+  'Credi in te stesso'
+];
+
+const ORBIT_RADII = { 1: 19, 2: 30, 3: 41, 4: 50 };
+
+function loadSettings(){
+  document.getElementById('userInitials').value = localStorage.getItem('ar_userInitials') || '';
+  document.getElementById('customMotto').value = localStorage.getItem('ar_customMotto') || '';
+  renderGlobalKv();
+}
+function saveSettings(){
+  localStorage.setItem('ar_userInitials', document.getElementById('userInitials').value.trim().toUpperCase());
+  localStorage.setItem('ar_customMotto', document.getElementById('customMotto').value.trim());
+  // Save global kv from editor
+  const globals = globalKvCollect();
+  localStorage.setItem('ar_global_settings', JSON.stringify(globals));
+}
+
+function loadGlobalSettings(){
+  try{ return JSON.parse(localStorage.getItem('ar_global_settings') || '{}'); }
+  catch(e){ return {}; }
+}
+
+/* Global KV editor — same pattern as per-tool kvEditor, but persists to ar_global_settings */
+function renderGlobalKv(){
+  const host = document.getElementById('globalKvEditor');
+  host.innerHTML = '';
+  const pairs = Object.entries(loadGlobalSettings()).map(([key,value]) => ({key,value}));
+  if(pairs.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'kv-empty';
+    empty.innerText = 'Nessuna chiave globale — aggiungine una per iniziare.';
+    host.appendChild(empty);
+  } else {
+    pairs.forEach((p, idx) => host.appendChild(globalKvBuildRow(p.key, p.value, idx)));
+  }
+  globalKvUpdateCount();
+}
+function globalKvBuildRow(key, value, idx){
+  const row = document.createElement('div');
+  row.className = 'kv-row';
+  row.dataset.idx = idx;
+  row.innerHTML = `
+    <input type="text" class="kv-key" placeholder="chiave (es. ar_apiKey)" value="${escapeHtml(key||'')}">
+    <input type="text" class="kv-val" placeholder="valore" value="${escapeHtml(value||'')}">
+    <button type="button" class="kv-remove" title="Rimuovi">×</button>
+  `;
+  row.querySelector('.kv-remove').addEventListener('click', () => {
+    row.remove();
+    globalKvUpdateCount();
+    if(!document.querySelector('#globalKvEditor .kv-row')){
+      renderGlobalKv();
+    }
+  });
+  row.querySelectorAll('input').forEach(i => i.addEventListener('input', globalKvUpdateCount));
+  return row;
+}
+function globalKvCollect(){
+  const rows = document.querySelectorAll('#globalKvEditor .kv-row');
+  const out = {};
+  rows.forEach(r => {
+    const k = r.querySelector('.kv-key').value.trim();
+    const v = r.querySelector('.kv-val').value;
+    if(k) out[k] = v;
+  });
+  return out;
+}
+function globalKvUpdateCount(){
+  const count = Object.keys(globalKvCollect()).length;
+  const el = document.getElementById('globalKvCount');
+  el.innerText = count === 0 ? 'nessuna chiave' : (count + (count === 1 ? ' chiave' : ' chiavi'));
+}
+
+function logLaunch(toolId){
+  let log = [];
+  try{ log = JSON.parse(localStorage.getItem('ar_log') || '[]'); }catch(e){}
+  log.push({toolId, timestamp: new Date().toISOString()});
+  if(log.length > 500) log = log.slice(-500);
+  localStorage.setItem('ar_log', JSON.stringify(log));
+}
+function getLog(){
+  try{ return JSON.parse(localStorage.getItem('ar_log') || '[]'); }catch(e){ return []; }
+}
+
+/* Convert old orbit+angle to absolute x,y (% of .system container) */
+function orbitToXY(orbit, angle){
+  const radius = ORBIT_RADII[orbit] || 30;
+  const rad = (angle || 0) * Math.PI / 180;
+  return {
+    x: 50 + radius * Math.cos(rad),
+    y: 50 - radius * Math.sin(rad)
+  };
+}
+
+function getToolPosition(t){
+  if(t.position && typeof t.position.x === 'number' && typeof t.position.y === 'number'){
+    return t.position;
+  }
+  return orbitToXY(t.orbit, t.angle);
+}
+
+function saveToolPosition(toolId, x, y){
+  if(toolId === 'add_new') return;
+  const list = loadCustomTools().map(t => {
+    if(t.id === toolId){
+      return {...t, position: {x, y}};
+    }
+    return t;
+  });
+  saveCustomTools(list);
+}
+
+function renderSatellites(){
+  const host = document.getElementById('satellites');
+  host.innerHTML = '';
+  const all = [...getTools()];
+  const addSlot = getAddSlot();
+  if(addSlot) all.push(addSlot);
+
+  all.forEach(t => {
+    const pos = getToolPosition(t);
+    const wrap = document.createElement('div');
+    wrap.className = 'satellite-wrap';
+    if(t.source === 'custom') wrap.classList.add('draggable');
+    wrap.style.left = pos.x + '%';
+    wrap.style.top = pos.y + '%';
+    wrap.dataset.toolId = t.id;
+
+    const sat = document.createElement('div');
+    sat.className = 'satellite sat-' + t.theme;
+    const fileHint = t.file ? ' — file: ' + t.file : '';
+    const kvCount = (t.settings && Object.keys(t.settings).length) || 0;
+    const kvHint = kvCount > 0 ? ' — ' + kvCount + ' impostazioni' : '';
+    sat.title = t.name + (t.desc ? ' — ' + t.desc : '') + fileHint + kvHint +
+                (t.source === 'custom' ? '\n\n• Click: apri · Drag: sposta · Long-press 3s: elimina · Click destro: menu' : '');
+
+    const filenameHtml = (t.source === 'custom' && t.file)
+      ? '<div class="sat-filename">' + escapeHtml(t.file) + '</div>'
+      : '';
+
+    sat.innerHTML = `
+      <div class="sat-body">${t.emoji}</div>
+      <div class="sat-label">
+        ${escapeHtml(t.name)}
+        ${filenameHtml}
+      </div>
+    `;
+    wrap.appendChild(sat);
+
+    // Long-press progress ring (only for custom tools)
+    if(t.source === 'custom'){
+      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      ring.setAttribute('class', 'longpress-ring');
+      ring.setAttribute('viewBox', '0 0 100 100');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '50');
+      circle.setAttribute('cy', '50');
+      circle.setAttribute('r', '48');
+      ring.appendChild(circle);
+      wrap.appendChild(ring);
+    }
+
+    host.appendChild(wrap);
+
+    if(t.isAddSlot){
+      sat.addEventListener('click', () => document.getElementById('globalFileInput').click());
+      return;
+    }
+
+    // Attach interaction (drag + longpress + click)
+    attachPlanetInteraction(wrap, t);
+  });
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============ INTERACTION: click / drag / long-press ============ */
+let interactionState = null;
+
+function attachPlanetInteraction(wrap, tool){
+  const onDown = (clientX, clientY, ev) => {
+    if(interactionState) return; // one at a time
+
+    const systemEl = wrap.parentElement.getBoundingClientRect();
+    interactionState = {
+      tool, wrap,
+      startX: clientX, startY: clientY,
+      originX: parseFloat(wrap.style.left) || 50,
+      originY: parseFloat(wrap.style.top) || 50,
+      systemRect: systemEl,
+      moved: false,
+      longPressFired: false,
+      longPressTimer: null
+    };
+
+    // Start long-press ONLY for custom tools (can't delete default tools)
+    if(tool.source === 'custom'){
+      wrap.classList.add('pressing');
+      interactionState.longPressTimer = setTimeout(() => {
+        if(!interactionState || interactionState.moved) return;
+        interactionState.longPressFired = true;
+        wrap.classList.remove('pressing');
+        const tl = interactionState.tool;
+        const w = interactionState.wrap;
+        // Reset interaction before opening confirm dialog
+        interactionState = null;
+        triggerLongPressDelete(tl, w);
+      }, 3000);
+    }
+  };
+
+  const sat = wrap.querySelector('.satellite');
+  sat.addEventListener('mousedown', e => {
+    if(e.button !== 0) return;
+    e.preventDefault();
+    onDown(e.clientX, e.clientY, e);
+  });
+  sat.addEventListener('touchstart', e => {
+    if(e.touches.length !== 1) return;
+    const t = e.touches[0];
+    onDown(t.clientX, t.clientY, e);
+  }, {passive:true});
+
+  // Right-click still shows the full menu
+  if(tool.source === 'custom'){
+    sat.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      showPlanetMenu(e, tool);
+    });
+  }
+}
+
+function onInteractionMove(clientX, clientY){
+  if(!interactionState) return;
+  const dx = clientX - interactionState.startX;
+  const dy = clientY - interactionState.startY;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+
+  // Threshold: once user moves 8px, switch to drag mode
+  if(!interactionState.moved && dist > 8){
+    interactionState.moved = true;
+    // Cancel long-press
+    if(interactionState.longPressTimer){
+      clearTimeout(interactionState.longPressTimer);
+      interactionState.longPressTimer = null;
+    }
+    interactionState.wrap.classList.remove('pressing');
+    // Only custom tools can actually be moved
+    if(interactionState.tool.source === 'custom'){
+      interactionState.wrap.classList.add('dragging');
+    }
+  }
+
+  if(interactionState.moved && interactionState.tool.source === 'custom'){
+    const rect = interactionState.systemRect;
+    const newX = interactionState.originX + (dx / rect.width) * 100;
+    const newY = interactionState.originY + (dy / rect.height) * 100;
+    const cx = Math.max(3, Math.min(97, newX));
+    const cy = Math.max(3, Math.min(97, newY));
+    interactionState.wrap.style.left = cx + '%';
+    interactionState.wrap.style.top = cy + '%';
+  }
+}
+
+function onInteractionEnd(){
+  if(!interactionState) return;
+  const s = interactionState;
+  interactionState = null;
+
+  if(s.longPressTimer){ clearTimeout(s.longPressTimer); }
+  s.wrap.classList.remove('pressing');
+
+  if(s.longPressFired){
+    return; // already handled by triggerLongPressDelete
+  }
+
+  if(s.moved){
+    s.wrap.classList.remove('dragging');
+    if(s.tool.source === 'custom'){
+      const newX = parseFloat(s.wrap.style.left);
+      const newY = parseFloat(s.wrap.style.top);
+      saveToolPosition(s.tool.id, newX, newY);
+    }
+    return;
+  }
+
+  // Pure click → launch tool
+  if(s.tool.file || s.tool.dataUrl){
+    launchTool(s.tool);
+  }
+}
+
+document.addEventListener('mousemove', e => onInteractionMove(e.clientX, e.clientY));
+document.addEventListener('mouseup', onInteractionEnd);
+document.addEventListener('touchmove', e => {
+  if(!interactionState) return;
+  if(e.touches.length !== 1) return;
+  if(interactionState.moved) e.preventDefault(); // prevent page scroll while dragging a planet
+  const t = e.touches[0];
+  onInteractionMove(t.clientX, t.clientY);
+}, {passive:false});
+document.addEventListener('touchend', onInteractionEnd);
+document.addEventListener('touchcancel', onInteractionEnd);
+
+/* ============ LONG-PRESS DELETE (after 3s held) ============ */
+function triggerLongPressDelete(tool, wrap){
+  // Strong visual cue and a confirm
+  const ok = confirm('🗑 Eliminare "' + tool.name + '"?\n\n' +
+    'Il file HTML sul disco non viene cancellato.\n' +
+    'Vengono rimossi dal sistema:\n' +
+    '  • il pianeta\n' +
+    '  • le impostazioni dedicate (' + (tool.settings ? Object.keys(tool.settings).length : 0) + ' chiavi)\n' +
+    '  • la posizione sulla lavagna');
+  if(!ok){
+    return;
+  }
+  // Show deletion progress bar
+  showDeletionProgress(tool, wrap);
+}
+
+function showDeletionProgress(tool, wrap){
+  document.getElementById('upTitle').innerText = 'Eliminazione…';
+  document.getElementById('upFile').innerText = tool.name + ' ' + (tool.file ? '(' + tool.file + ')' : '');
+  document.getElementById('upFill').style.width = '0%';
+  document.getElementById('upPct').innerText = '0%';
+  uploadProgress.classList.remove('done');
+  uploadProgress.classList.add('show');
+  // Make the progress bar red
+  uploadProgress.classList.add('deleting');
+
+  let pct = 0;
+  const step = setInterval(() => {
+    pct += 4;
+    if(pct >= 100){
+      pct = 100;
+      clearInterval(step);
+      document.getElementById('upFill').style.width = '100%';
+      document.getElementById('upPct').innerText = '100% ✓';
+      document.getElementById('upTitle').innerText = '✓ Eliminato';
+      uploadProgress.classList.add('done');
+      // Visual pop on the planet
+      if(wrap && wrap.parentElement){
+        wrap.classList.add('deleting');
+      }
+      setTimeout(() => {
+        removeCustomTool(tool.id);
+        uploadProgress.classList.remove('show');
+        uploadProgress.classList.remove('deleting');
+      }, 700);
+    } else {
+      document.getElementById('upFill').style.width = pct + '%';
+      document.getElementById('upPct').innerText = pct + '%';
+    }
+  }, 20); // 20ms * 25 = 500ms
+}
+
+function removeCustomTool(id){
+  const list = loadCustomTools().filter(t => t.id !== id);
+  saveCustomTools(list);
+  localStorage.removeItem('ar_skipImportPrompt_' + id);
+  renderSatellites();
+  renderStats();
+  showToast('Tool rimosso dall\'ecosistema', 'ok');
+}
+
+function launchTool(tool){
+  logLaunch(tool.id);
+  showToast('🚀 Apro ' + tool.name, 'ok');
+  renderStats();
+  setTimeout(() => {
+    if(tool.dataUrl){
+      try{
+        const dataUrl = tool.dataUrl;
+        const commaIdx = dataUrl.indexOf(',');
+        const meta = dataUrl.slice(5, commaIdx);
+        const mimeType = meta.split(';')[0] || 'text/html';
+        const isBase64 = meta.includes('base64');
+        const payload = dataUrl.slice(commaIdx + 1);
+        let htmlContent;
+        if(isBase64){
+          // atob returns a binary string; convert to UTF-8 text
+          const bin = atob(payload);
+          const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+          htmlContent = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          htmlContent = decodeURIComponent(payload);
+        }
+
+        // Inject globals FIRST, then this tool's own settings (which can override).
+        // Blob URLs have a different origin than AR Nova, so localStorage is NOT shared —
+        // we pre-seed the opened page with all keys via a bootstrap script.
+        const globalSettings = loadGlobalSettings();
+        const toolSettings = tool.settings || {};
+        const merged = Object.assign({}, globalSettings, toolSettings);
+        const keyCount = Object.keys(merged).length;
+        const bootstrap = '<script>'
+          + 'try{'
+          +   'const _arKeys = ' + JSON.stringify(merged) + ';'
+          +   'const _arInjected = [];'
+          +   'Object.entries(_arKeys).forEach(([k,v]) => {'
+          +     'if(v !== undefined && v !== null && v !== ""){'
+          +       'localStorage.setItem(k,v);'
+          +       '_arInjected.push(k);'
+          +     '}'
+          +   '});'
+          +   'console.log("%c[AR Nova] Iniettate "+_arInjected.length+" chiavi nel localStorage:", "color:#b084ff;font-weight:bold", _arInjected);'
+          +   'if(_arInjected.length === 0){'
+          +     'console.warn("[AR Nova] Nessuna chiave iniettata. Apri AR Nova → click destro sul pianeta → 🔑 Importa chiavi dal file originale");'
+          +   '}'
+          + '}catch(e){console.error("[AR Nova] Bootstrap failed:", e);}'
+          + '<' + '/script>';
+
+        // Inject bootstrap just after <head> (or at the very top if no head tag found)
+        if(/<head[^>]*>/i.test(htmlContent)){
+          htmlContent = htmlContent.replace(/<head[^>]*>/i, match => match + bootstrap);
+        } else {
+          htmlContent = bootstrap + htmlContent;
+        }
+
+        const encoded = new TextEncoder().encode(htmlContent);
+        const blob = new Blob([encoded], {type: mimeType});
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      } catch(err){
+        showToast('✗ Errore apertura: ' + err.message, 'err');
+      }
+    } else if(tool.file){
+      window.open(tool.file, '_blank');
+    }
+  }, 300);
+}
+
+function renderStats(){
+  const tools = getTools();
+  const active = tools.length;
+  document.getElementById('statTools').innerText = active;
+  const log = getLog();
+  document.getElementById('statLaunches').innerText = log.length;
+
+  if(active > 0){ document.body.classList.add('has-tools'); }
+  else { document.body.classList.remove('has-tools'); }
+
+  if(log.length > 0){
+    const last = log[log.length - 1];
+    const tool = tools.find(t => t.id === last.toolId);
+    document.getElementById('statLast').innerText = tool ? tool.name : '—';
+  } else {
+    document.getElementById('statLast').innerText = '—';
+  }
+}
+
+let phraseIdx = 0;
+let motivationalInterval = null;
+function startMotivationalLoop(){
+  const el = document.getElementById('motivationalText');
+  const coreEl = document.getElementById('coreInitials');
+  const initials = localStorage.getItem('ar_userInitials') || 'AR';
+  coreEl.innerText = initials;
+
+  if(motivationalInterval){ clearInterval(motivationalInterval); motivationalInterval = null; }
+
+  const custom = localStorage.getItem('ar_customMotto');
+  if(custom){
+    el.innerText = custom;
+    el.classList.remove('fade');
+    return;
+  }
+
+  el.innerText = PHRASES[0];
+  phraseIdx = 0;
+
+  motivationalInterval = setInterval(() => {
+    el.classList.add('fade');
+    setTimeout(() => {
+      phraseIdx = (phraseIdx + 1) % PHRASES.length;
+      el.innerText = PHRASES[phraseIdx];
+      el.classList.remove('fade');
+    }, 1000);
+  }, 5000);
+}
+
+const settingsModal = document.getElementById('settingsModal');
+const contextModal = document.getElementById('contextModal');
+
+document.getElementById('openSettings').addEventListener('click', () => {
+  loadSettings();
+  settingsModal.classList.add('show');
+});
+document.getElementById('settingsClose').addEventListener('click', () => settingsModal.classList.remove('show'));
+document.getElementById('saveSettings').addEventListener('click', () => {
+  saveSettings();
+  settingsModal.classList.remove('show');
+  renderStats();
+  startMotivationalLoop();
+  showToast('💾 Impostazioni salvate', 'ok');
+});
+settingsModal.addEventListener('click', e => { if(e.target.id === 'settingsModal') settingsModal.classList.remove('show') });
+
+document.getElementById('openContext').addEventListener('click', () => {
+  document.getElementById('contextText').value = buildContextText();
+  contextModal.classList.add('show');
+});
+document.getElementById('contextClose').addEventListener('click', () => contextModal.classList.remove('show'));
+contextModal.addEventListener('click', e => { if(e.target.id === 'contextModal') contextModal.classList.remove('show') });
+
+// Reset all tools
+document.getElementById('resetAllTools').addEventListener('click', () => {
+  const n = loadCustomTools().length;
+  if(n === 0){ showToast('Il sistema è già vuoto', 'ok'); return; }
+  if(confirm('🗑 Rimuovere TUTTI i ' + n + ' tool dall\'ecosistema?\n\nI file sul disco non vengono cancellati, ma perdi:\n• tutti i pianeti dal sistema\n• tutte le impostazioni dedicate di ogni tool\n• la cronologia launch\n\nQuesta azione non si può annullare.')){
+    localStorage.removeItem('ar_custom_tools');
+    localStorage.removeItem('ar_log');
+    settingsModal.classList.remove('show');
+    renderSatellites();
+    renderStats();
+    showToast('🌌 Sistema svuotato', 'ok');
+  }
+});
+
+document.getElementById('exportSettings').addEventListener('click', () => {
+  const data = {
+    userInitials: localStorage.getItem('ar_userInitials') || '',
+    customMotto: localStorage.getItem('ar_customMotto') || '',
+    globalSettings: loadGlobalSettings(),
+    tools: loadCustomTools(),
+    log: getLog(),
+    exported_at: new Date().toISOString(),
+    version: 'AR-Nova-v10'
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'ar_nova_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📤 Backup esportato (pianeti + globali + nucleo)', 'ok');
+});
+document.getElementById('importSettings').addEventListener('change', async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const data = JSON.parse(await f.text());
+    if(data.userInitials !== undefined) document.getElementById('userInitials').value = data.userInitials;
+    if(data.customMotto !== undefined) document.getElementById('customMotto').value = data.customMotto;
+    if(data.globalSettings && typeof data.globalSettings === 'object'){
+      localStorage.setItem('ar_global_settings', JSON.stringify(data.globalSettings));
+      renderGlobalKv();
+    }
+    if(Array.isArray(data.tools)){
+      if(data.tools.length > 0 && !confirm('Il backup contiene ' + data.tools.length + ' pianeti. Sostituirli con quelli attuali?\n\n• OK → sostituisce (perdi i pianeti attuali)\n• Annulla → tieni solo impostazioni e chiavi globali, ignora i pianeti')){
+        // keep current tools
+      } else {
+        saveCustomTools(data.tools);
+      }
+    }
+    if(Array.isArray(data.log)){
+      localStorage.setItem('ar_log', JSON.stringify(data.log));
+    }
+    saveSettings();
+    renderSatellites();
+    renderStats();
+    startMotivationalLoop();
+    showToast('📥 Import completato', 'ok');
+  }catch(err){
+    showToast('✗ File invalido', 'err');
+  }
+});
+
+function buildContextText(){
+  const tools = getTools();
+  const toolsList = tools.length ? tools.map(t => {
+    const kvCount = (t.settings && Object.keys(t.settings).length) || 0;
+    return '- **' + t.name + '** — ' + t.desc + ' (file: `' + (t.file || 'inline') + '`, ' + kvCount + ' impostazioni dedicate)';
+  }).join('\n') : '- (nessun tool attualmente in orbita)';
+  return `# AR Nova — Context per Claude
+
+Sto lavorando al mio ecosistema personale **AR Nova**: un sistema solare HTML dove io sono al centro (sole) e i tool sono satelliti in orbita.
+
+## Filosofia (v7)
+
+- **Ogni strumento è un mondo isolato**: ha il suo file HTML e le sue impostazioni dedicate (chiavi API, preset, ecc.)
+- AR Nova non ha più chiavi globali — solo personalizzazione del nucleo (iniziali, motto)
+- Carica un nuovo tool via ➕ o **drag & drop** del file HTML nell'area del sistema solare
+- Ogni pianeta custom ha un menu (click destro o long-press) per modificare nome, emoji, colore, impostazioni dedicate
+
+## Come funziona l'apertura di un tool
+
+- Click sinistro sul pianeta → apre il tool in una nuova tab
+- Prima dell'apertura, AR Nova inietta nel localStorage del tool tutte le chiavi-valore delle sue impostazioni dedicate (bootstrap via blob URL)
+- Il tool trova le sue chiavi già scritte, come se le avessi sempre avute lì
+
+## Tool attualmente in orbita
+
+${toolsList}
+
+## Convenzioni per i tool HTML che mi richiedi
+
+- Ogni tool deve leggere le chiavi che gli servono dal proprio \`localStorage\` con nomi espliciti (es. \`apiKey\`, \`openai_key\`, \`cloudName\`)
+- Non sono previste chiavi globali condivise: ogni tool è autonomo
+- Pattern file: \`nome_YYYY-MM-DD_vN.html\`
+- Stile condiviso: font Sora/JetBrains Mono, dark theme, accenti viola (#b084ff) e cyan (#6ee7ff)
+
+## Stile visivo AR Nova
+
+- Sistema solare scuro con stelle e orbite concentriche
+- Core warm (#ffb547 → #ff6e4a) al centro con iniziali + frase motivazionale italiana (rotazione ogni 5s)
+- Satelliti colorati: viola (foto), cyan (voce), rosa (testo), verde (creative)
+- FAB ➕ bottom-right + drag & drop globale con progress bar
+
+## Quando mi chiedi modifiche o nuovi tool
+
+1. Se creiamo un tool nuovo: consegnalo come file HTML autonomo
+2. Io lo trascino (drag) o carico con ➕ in AR Nova
+3. Al caricamento gli do nome, emoji, colore e le sue impostazioni (chiavi API, preset, ecc.)
+4. Da quel momento è un pianeta vero nell'ecosistema
+
+---
+
+Dimmi cosa ti serve fare in AR Nova.`;
+}
+
+document.getElementById('copyContext').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(document.getElementById('contextText').value); }
+  catch(e){ document.getElementById('contextText').select(); document.execCommand('copy'); }
+  showToast('📋 Context copiato', 'ok');
+});
+document.getElementById('downloadContext').addEventListener('click', () => {
+  const blob = new Blob([buildContextText()], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'AR_CONTEXT.md';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('⬇ AR_CONTEXT.md scaricato', 'ok');
+});
+
+document.getElementById('core').addEventListener('click', () => {
+  loadSettings();
+  settingsModal.classList.add('show');
+});
+
+let toastTimeout = null;
+function showToast(msg, cls){
+  const t = document.getElementById('toast');
+  t.className = 'toast ' + (cls||'');
+  t.innerText = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ============ ADD / EDIT TOOL MODAL ============ */
+const addToolModal = document.getElementById('addToolModal');
+let uploadedFileContent = null;
+let uploadedFileName = null;
+let editingToolId = null; // null = create mode, string = edit mode
+
+/* --- Key-Value editor: manages a list of {key,value} pairs in the DOM --- */
+function kvRender(pairs){
+  const host = document.getElementById('kvEditor');
+  host.innerHTML = '';
+  if(!pairs || pairs.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'kv-empty';
+    empty.innerText = 'Nessuna impostazione — il tool userà solo le chiavi globali AR.';
+    host.appendChild(empty);
+  } else {
+    pairs.forEach((p, idx) => host.appendChild(kvBuildRow(p.key, p.value, idx)));
+  }
+  kvUpdateCount();
+}
+function kvBuildRow(key, value, idx){
+  const row = document.createElement('div');
+  row.className = 'kv-row';
+  row.dataset.idx = idx;
+  row.innerHTML = `
+    <input type="text" class="kv-key" placeholder="chiave (es. ar_apiKey)" value="${escapeHtml(key||'')}">
+    <input type="text" class="kv-val" placeholder="valore" value="${escapeHtml(value||'')}">
+    <button type="button" class="kv-remove" title="Rimuovi">×</button>
+  `;
+  row.querySelector('.kv-remove').addEventListener('click', () => {
+    row.remove();
+    kvUpdateCount();
+    // If no rows left, show empty state
+    if(!document.querySelector('#kvEditor .kv-row')){
+      kvRender([]);
+    }
+  });
+  row.querySelectorAll('input').forEach(i => i.addEventListener('input', kvUpdateCount));
+  return row;
+}
+function kvAddEmpty(){
+  const host = document.getElementById('kvEditor');
+  // Remove empty state if present
+  const empty = host.querySelector('.kv-empty');
+  if(empty) empty.remove();
+  const row = kvBuildRow('','',Date.now());
+  host.appendChild(row);
+  row.querySelector('.kv-key').focus();
+  kvUpdateCount();
+  // Open the collapsible if closed
+  document.getElementById('settingsCollapsible').classList.add('open');
+}
+function kvCollect(){
+  const rows = document.querySelectorAll('#kvEditor .kv-row');
+  const out = {};
+  rows.forEach(r => {
+    const k = r.querySelector('.kv-key').value.trim();
+    const v = r.querySelector('.kv-val').value;
+    if(k) out[k] = v;
+  });
+  return out;
+}
+function kvUpdateCount(){
+  const count = Object.keys(kvCollect()).length;
+  const el = document.getElementById('kvCount');
+  el.innerText = count === 0 ? 'nessuna impostazione' : (count + (count === 1 ? ' impostazione' : ' impostazioni'));
+}
+document.getElementById('kvAdd').addEventListener('click', kvAddEmpty);
+document.getElementById('settingsToggle').addEventListener('click', () => {
+  document.getElementById('settingsCollapsible').classList.toggle('open');
+});
+
+/* Global kv add + toggle */
+document.getElementById('globalKvAdd').addEventListener('click', () => {
+  const host = document.getElementById('globalKvEditor');
+  const empty = host.querySelector('.kv-empty');
+  if(empty) empty.remove();
+  const row = globalKvBuildRow('', '', Date.now());
+  host.appendChild(row);
+  row.querySelector('.kv-key').focus();
+  globalKvUpdateCount();
+  document.getElementById('globalKvCollapsible').classList.add('open');
+});
+document.getElementById('globalKvToggle').addEventListener('click', () => {
+  document.getElementById('globalKvCollapsible').classList.toggle('open');
+});
+
+/* ============ IMPORT FROM ORIGINAL FILE ============ */
+document.getElementById('importToggle').addEventListener('click', () => {
+  document.getElementById('importCollapsible').classList.toggle('open');
+});
+
+document.getElementById('copySnippet').addEventListener('click', async () => {
+  const code = document.getElementById('importSnippetCode').innerText;
+  try{
+    await navigator.clipboard.writeText(code);
+    const btn = document.getElementById('copySnippet');
+    const old = btn.innerText;
+    btn.innerText = '✓ Copiato';
+    setTimeout(() => btn.innerText = old, 1500);
+  } catch(e){
+    // Fallback: select the text
+    const range = document.createRange();
+    range.selectNode(document.getElementById('importSnippetCode'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    showToast('Seleziona e copia manualmente (Ctrl+C / ⌘+C)', 'err');
+  }
+});
+
+document.getElementById('confirmImport').addEventListener('click', () => {
+  const raw = document.getElementById('importPaste').value.trim();
+  const status = document.getElementById('importStatus');
+  if(!raw){
+    status.innerText = '✗ Incolla prima il JSON';
+    status.className = 'test-status err';
+    return;
+  }
+  let parsed;
+  try{
+    parsed = JSON.parse(raw);
+  } catch(e){
+    status.innerText = '✗ JSON non valido: ' + e.message.slice(0,40);
+    status.className = 'test-status err';
+    return;
+  }
+  if(typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)){
+    status.innerText = '✗ Serve un oggetto { "chiave": "valore", ... }';
+    status.className = 'test-status err';
+    return;
+  }
+
+  // Add each entry to the kv editor (merging with what's already there)
+  const existingKeys = new Set();
+  document.querySelectorAll('#kvEditor .kv-row').forEach(r => {
+    const k = r.querySelector('.kv-key').value.trim();
+    if(k) existingKeys.add(k);
+  });
+
+  // Remove empty-state if present
+  const emptyEl = document.querySelector('#kvEditor .kv-empty');
+  if(emptyEl) emptyEl.remove();
+
+  let added = 0;
+  let overwritten = 0;
+  Object.entries(parsed).forEach(([k, v]) => {
+    if(typeof v !== 'string'){ v = JSON.stringify(v); }
+    if(existingKeys.has(k)){
+      // Overwrite existing row
+      document.querySelectorAll('#kvEditor .kv-row').forEach(r => {
+        if(r.querySelector('.kv-key').value.trim() === k){
+          r.querySelector('.kv-val').value = v;
+          overwritten++;
+        }
+      });
+    } else {
+      const row = kvBuildRow(k, v, Date.now() + Math.random());
+      document.getElementById('kvEditor').appendChild(row);
+      added++;
+    }
+  });
+
+  kvUpdateCount();
+  document.getElementById('settingsCollapsible').classList.add('open');
+  document.getElementById('importPaste').value = '';
+  status.innerText = '✓ ' + added + ' nuove, ' + overwritten + ' aggiornate — ricordati di Salvare';
+  status.className = 'test-status ok';
+});
+
+function openAddToolModal(){
+  editingToolId = null;
+  document.getElementById('addToolTitle').innerText = '➕ Aggiungi un tool all\'ecosistema';
+  document.getElementById('addToolSub').innerText = 'Carica un file HTML dal disco e dagli un nome. Viene memorizzato nel browser e apparirà come pianeta in orbita — con le sue impostazioni dedicate.';
+  document.getElementById('fileGroup').style.display = '';
+  document.getElementById('newToolName').value = '';
+  document.getElementById('newToolName').classList.remove('required-missing');
+  document.getElementById('newToolEmoji').value = '🚀';
+  document.getElementById('newToolDesc').value = '';
+  document.getElementById('newToolTheme').value = 'creative';
+  document.getElementById('newToolFile').value = '';
+  document.getElementById('newToolFileName').innerText = 'Nessun file selezionato';
+  document.getElementById('confirmAddTool').innerText = '🚀 Metti in orbita';
+  uploadedFileContent = null;
+  uploadedFileName = null;
+  kvRender([]);
+  document.getElementById('settingsCollapsible').classList.remove('open');
+  addToolModal.classList.add('show');
+  setTimeout(() => document.getElementById('newToolName').focus(), 100);
+}
+
+function openEditToolModal(tool){
+  editingToolId = tool.id;
+  document.getElementById('addToolTitle').innerText = '✎ Modifica ' + tool.name;
+  document.getElementById('addToolSub').innerText = 'Cambia nome, emoji, colore e impostazioni. Il file HTML resta lo stesso (se vuoi aggiornarlo, rimuovi e ricarica).';
+  document.getElementById('fileGroup').style.display = 'none';
+  document.getElementById('newToolName').value = tool.name || '';
+  document.getElementById('newToolName').classList.remove('required-missing');
+  document.getElementById('newToolEmoji').value = tool.emoji || '🚀';
+  document.getElementById('newToolDesc').value = (tool.desc && tool.desc !== '(nessuna descrizione)') ? tool.desc : '';
+  document.getElementById('newToolTheme').value = tool.theme || 'creative';
+  document.getElementById('confirmAddTool').innerText = '💾 Salva modifiche';
+  uploadedFileContent = tool.dataUrl;
+  uploadedFileName = tool.file;
+  const settingsPairs = Object.entries(tool.settings || {}).map(([key, value]) => ({key, value}));
+  kvRender(settingsPairs);
+  if(settingsPairs.length > 0){
+    document.getElementById('settingsCollapsible').classList.add('open');
+  } else {
+    document.getElementById('settingsCollapsible').classList.remove('open');
+  }
+  // Reset import section
+  document.getElementById('importCollapsible').classList.remove('open');
+  document.getElementById('importPaste').value = '';
+  document.getElementById('importStatus').innerText = '';
+  document.getElementById('importStatus').className = 'test-status';
+  document.getElementById('importFileName').innerText = tool.file || '.html';
+  addToolModal.classList.add('show');
+  setTimeout(() => document.getElementById('newToolName').focus(), 100);
+}
+
+document.getElementById('addToolClose').addEventListener('click', () => addToolModal.classList.remove('show'));
+document.getElementById('cancelAddTool').addEventListener('click', () => addToolModal.classList.remove('show'));
+addToolModal.addEventListener('click', e => { if(e.target.id === 'addToolModal') addToolModal.classList.remove('show') });
+
+document.getElementById('newToolFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const label = document.getElementById('newToolFileName');
+  const kb = Math.round(f.size/1024);
+  label.innerHTML = '<span style="color:var(--ok)">✓ ' + escapeHtml(f.name) + ' (' + kb + ' KB)</span>';
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    uploadedFileContent = reader.result;
+    uploadedFileName = f.name;
+    const nameEl = document.getElementById('newToolName');
+    if(!nameEl.value.trim()){
+      nameEl.value = f.name
+        .replace(/\.html?$/i,'')
+        .replace(/[_-]/g,' ')
+        .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+        .replace(/\s*v\d+.*$/i,'')
+        .replace(/\b\w/g, c => c.toUpperCase())
+        .trim();
+    }
+    // Auto-focus the name field so the user can confirm/edit it immediately
+    nameEl.focus();
+    nameEl.select();
+  };
+  reader.onerror = () => {
+    label.innerHTML = '<span style="color:var(--err)">✗ Errore lettura file</span>';
+  };
+  reader.readAsDataURL(f);
+});
+
+// Clear required-missing state as soon as user types
+document.getElementById('newToolName').addEventListener('input', e => {
+  if(e.target.value.trim()){
+    e.target.classList.remove('required-missing');
+  }
+});
+
+document.getElementById('confirmAddTool').addEventListener('click', () => {
+  const nameEl = document.getElementById('newToolName');
+  const name = nameEl.value.trim();
+  const emoji = document.getElementById('newToolEmoji').value.trim() || '🚀';
+  const desc = document.getElementById('newToolDesc').value.trim() || '(nessuna descrizione)';
+  const theme = document.getElementById('newToolTheme').value;
+  const settings = kvCollect();
+
+  if(!name){
+    nameEl.classList.add('required-missing');
+    nameEl.focus();
+    showToast('⚠ Il nome dello strumento è obbligatorio', 'err');
+    return;
+  }
+  if(!uploadedFileContent){
+    showToast('Seleziona prima il file HTML', 'err');
+    return;
+  }
+
+  const existing = loadCustomTools();
+
+  // ===== EDIT MODE =====
+  if(editingToolId){
+    const updatedList = existing.map(t => {
+      if(t.id === editingToolId){
+        return {
+          ...t,
+          name, emoji, desc, theme, settings,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return t;
+    });
+    try{ saveCustomTools(updatedList); }
+    catch(err){ showToast('✗ Spazio esaurito', 'err'); return; }
+    addToolModal.classList.remove('show');
+    renderSatellites();
+    renderStats();
+    showToast('💾 "' + name + '" aggiornato', 'ok');
+    return;
+  }
+
+  // ===== CREATE MODE =====
+  // Duplicate detection by normalized filename stem OR by normalized display name.
+  const normalizeName = s => (s||'').toLowerCase()
+    .replace(/\.html?$/i,'')
+    .replace(/[_\s-]+/g,' ')
+    .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+    .replace(/\s*v\d+.*$/i,'')
+    .trim();
+
+  const newStem = normalizeName(uploadedFileName);
+  const newNameNorm = normalizeName(name);
+
+  const existingMatch = existing.find(t => {
+    const tStem = normalizeName(t.file);
+    const tName = normalizeName(t.name);
+    return (tStem && tStem === newStem) || (tName && tName === newNameNorm);
+  });
+
+  const size = (uploadedFileContent.length * 0.75) / 1024;
+  if(size > 2000){
+    if(!confirm('Il file pesa ~' + Math.round(size) + ' KB. Il browser limita il localStorage a ~5MB totali. Continuare?')){
+      return;
+    }
+  }
+
+  let updatedList;
+  let actionMsg;
+
+  if(existingMatch){
+    const confirmReplace = confirm(
+      '🔄 Ho trovato un tool simile già in orbita:\n\n' +
+      '   ' + existingMatch.emoji + ' ' + existingMatch.name + '\n' +
+      '   file: ' + (existingMatch.file || '—') + '\n\n' +
+      'Vuoi sostituirlo con la nuova versione?\n\n' +
+      '• OK → sostituisce (il pianeta resta nella stessa orbita, le impostazioni nuove sovrascrivono)\n' +
+      '• Annulla → lo aggiunge come pianeta nuovo separato'
+    );
+
+    if(confirmReplace){
+      updatedList = existing.map(t => {
+        if(t.id === existingMatch.id){
+          return {
+            ...t,
+            name, emoji, desc, theme, settings,
+            file: uploadedFileName,
+            dataUrl: uploadedFileContent,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return t;
+      });
+      actionMsg = '🔄 "' + name + '" aggiornato (stesso pianeta, nuova versione)';
+    } else {
+      const slotIdx = existing.length % NEW_TOOL_SLOTS.length;
+      const slot = NEW_TOOL_SLOTS[slotIdx];
+      updatedList = [...existing, {
+        id: 'custom_' + Date.now(),
+        name, emoji, desc, theme, settings,
+        source: 'custom',
+        file: uploadedFileName,
+        dataUrl: uploadedFileContent,
+        orbit: slot.orbit, angle: slot.angle, duration: slot.duration
+      }];
+      actionMsg = '🚀 "' + name + '" aggiunto come pianeta separato';
+    }
+  } else {
+    const slotIdx = existing.length % NEW_TOOL_SLOTS.length;
+    const slot = NEW_TOOL_SLOTS[slotIdx];
+    updatedList = [...existing, {
+      id: 'custom_' + Date.now(),
+      name, emoji, desc, theme, settings,
+      source: 'custom',
+      file: uploadedFileName,
+      dataUrl: uploadedFileContent,
+      orbit: slot.orbit, angle: slot.angle, duration: slot.duration
+    }];
+    actionMsg = '🚀 "' + name + '" è ora in orbita!';
+  }
+
+  try{
+    saveCustomTools(updatedList);
+  } catch(err){
+    showToast('✗ Spazio esaurito nel browser — rimuovi qualche tool', 'err');
+    return;
+  }
+
+  addToolModal.classList.remove('show');
+  renderSatellites();
+  renderStats();
+  showToast(actionMsg, 'ok');
+});
+
+/* ============ PLANET CONTEXT MENU ============ */
+const planetMenu = document.getElementById('planetMenu');
+let currentMenuTool = null;
+
+function showPlanetMenu(event, tool){
+  event.preventDefault();
+  event.stopPropagation();
+  currentMenuTool = tool;
+  document.getElementById('menuEmoji').innerText = tool.emoji || '🛠';
+  document.getElementById('menuName').innerText = tool.name;
+
+  // Position menu near cursor, but keep inside viewport
+  planetMenu.style.visibility = 'hidden';
+  planetMenu.classList.add('show');
+  const rect = planetMenu.getBoundingClientRect();
+  let x = event.clientX + 4;
+  let y = event.clientY + 4;
+  if(x + rect.width > window.innerWidth - 12) x = window.innerWidth - rect.width - 12;
+  if(y + rect.height > window.innerHeight - 12) y = event.clientY - rect.height - 4;
+  planetMenu.style.left = x + 'px';
+  planetMenu.style.top = y + 'px';
+  planetMenu.style.visibility = '';
+}
+function hidePlanetMenu(){
+  planetMenu.classList.remove('show');
+  currentMenuTool = null;
+}
+document.addEventListener('click', e => {
+  if(!planetMenu.contains(e.target)) hidePlanetMenu();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape') hidePlanetMenu(); });
+
+document.getElementById('menuLaunch').addEventListener('click', () => {
+  if(currentMenuTool) launchTool(currentMenuTool);
+  hidePlanetMenu();
+});
+document.getElementById('menuEdit').addEventListener('click', () => {
+  if(currentMenuTool) openEditToolModal(currentMenuTool);
+  hidePlanetMenu();
+});
+document.getElementById('menuDelete').addEventListener('click', () => {
+  if(currentMenuTool && confirm('Rimuovere "' + currentMenuTool.name + '" dal sistema?\n\nIl file sul disco non viene cancellato, ma le impostazioni dedicate sì.')){
+    removeCustomTool(currentMenuTool.id);
+  }
+  hidePlanetMenu();
+});
+
+/* ============ IMPORT WIZARD (dedicated modal) ============ */
+const importWizardModal = document.getElementById('importWizardModal');
+let wizardTool = null;
+
+function openImportWizard(tool){
+  wizardTool = tool;
+  document.getElementById('iwToolName').innerText = tool.name;
+  document.getElementById('iwFileName').innerText = tool.file || 'file.html';
+  document.getElementById('iwPaste').value = '';
+  document.getElementById('iwStatus').innerText = '';
+  document.getElementById('iwStatus').className = 'test-status';
+  importWizardModal.classList.add('show');
+}
+document.getElementById('menuImport').addEventListener('click', () => {
+  if(currentMenuTool) openImportWizard(currentMenuTool);
+  hidePlanetMenu();
+});
+document.getElementById('importWizardClose').addEventListener('click', () => importWizardModal.classList.remove('show'));
+document.getElementById('iwCancelBtn').addEventListener('click', () => importWizardModal.classList.remove('show'));
+importWizardModal.addEventListener('click', e => { if(e.target.id === 'importWizardModal') importWizardModal.classList.remove('show') });
+
+document.getElementById('iwCopyBtn').addEventListener('click', async () => {
+  const code = document.getElementById('iwSnippetCode').innerText;
+  const btn = document.getElementById('iwCopyBtn');
+  try{
+    await navigator.clipboard.writeText(code);
+    const old = btn.innerText;
+    btn.innerText = '✓ Copiato negli appunti';
+    setTimeout(() => btn.innerText = old, 2000);
+  } catch(e){
+    // Fallback
+    const range = document.createRange();
+    range.selectNode(document.getElementById('iwSnippetCode'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    btn.innerText = 'Seleziona manualmente e copia (Ctrl+C)';
+  }
+});
+
+document.getElementById('iwImportBtn').addEventListener('click', () => {
+  const raw = document.getElementById('iwPaste').value.trim();
+  const status = document.getElementById('iwStatus');
+  if(!raw){
+    status.innerText = '✗ Incolla prima il JSON dal punto 3';
+    status.className = 'test-status err';
+    return;
+  }
+  let parsed;
+  try{ parsed = JSON.parse(raw); }
+  catch(e){
+    status.innerText = '✗ JSON non valido: ' + e.message.slice(0,50);
+    status.className = 'test-status err';
+    return;
+  }
+  if(typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)){
+    status.innerText = '✗ Serve un oggetto { "chiave": "valore" }';
+    status.className = 'test-status err';
+    return;
+  }
+  if(Object.keys(parsed).length === 0){
+    status.innerText = '⚠ JSON vuoto: il tool originale non aveva chiavi salvate';
+    status.className = 'test-status err';
+    return;
+  }
+  if(!wizardTool){
+    status.innerText = '✗ Pianeta non trovato';
+    status.className = 'test-status err';
+    return;
+  }
+
+  // Merge into the tool's settings
+  const list = loadCustomTools();
+  const idx = list.findIndex(t => t.id === wizardTool.id);
+  if(idx < 0){
+    status.innerText = '✗ Pianeta non più in orbita';
+    status.className = 'test-status err';
+    return;
+  }
+  const currentSettings = list[idx].settings || {};
+  const merged = {...currentSettings};
+  let added = 0, overwritten = 0;
+  Object.entries(parsed).forEach(([k, v]) => {
+    const value = (typeof v === 'string') ? v : JSON.stringify(v);
+    if(k in merged){ overwritten++; }
+    else { added++; }
+    merged[k] = value;
+  });
+  list[idx] = {...list[idx], settings: merged, updatedAt: new Date().toISOString()};
+  try{ saveCustomTools(list); }
+  catch(err){ status.innerText = '✗ Spazio esaurito'; status.className = 'test-status err'; return; }
+
+  // Update wizardTool reference so subsequent diag/actions see the new data
+  wizardTool = list[idx];
+
+  status.innerText = '✓ ' + added + ' nuove, ' + overwritten + ' aggiornate — salvate nel pianeta';
+  status.className = 'test-status ok';
+  renderSatellites();
+  renderStats();
+  showToast('🔑 Chiavi importate in "' + wizardTool.name + '"', 'ok');
+});
+
+/* ============ DIAGNOSTIC MODAL ============ */
+const diagModal = document.getElementById('diagModal');
+document.getElementById('menuDiag').addEventListener('click', () => {
+  if(currentMenuTool) openDiagnostic(currentMenuTool);
+  hidePlanetMenu();
+});
+document.getElementById('diagClose').addEventListener('click', () => diagModal.classList.remove('show'));
+document.getElementById('diagCloseBtn').addEventListener('click', () => diagModal.classList.remove('show'));
+diagModal.addEventListener('click', e => { if(e.target.id === 'diagModal') diagModal.classList.remove('show') });
+
+function openDiagnostic(tool){
+  // Re-read from localStorage in case tool reference is stale
+  const fresh = loadCustomTools().find(t => t.id === tool.id) || tool;
+  document.getElementById('diagToolName').innerText = fresh.name;
+
+  const globals = loadGlobalSettings();
+  const toolSettings = fresh.settings || {};
+  const merged = Object.assign({}, globals, toolSettings);
+
+  const renderKv = obj => {
+    const keys = Object.keys(obj);
+    if(keys.length === 0){
+      return '<div class="diag-kv"><span class="dempty">(nessuna chiave)</span></div>';
+    }
+    return '<div class="diag-kv">' + keys.map(k => {
+      const v = obj[k] || '';
+      const short = v.length > 60 ? v.slice(0, 30) + '…' + v.slice(-10) : v;
+      const masked = /key|token|secret|password/i.test(k) && v.length > 8
+        ? v.slice(0,4) + '••••••' + v.slice(-4)
+        : escapeHtml(short);
+      return '<div><span class="dk">' + escapeHtml(k) + '</span>: <span class="dv">' + masked + '</span></div>';
+    }).join('') + '</div>';
+  };
+
+  const html = `
+    <div class="diag-block">
+      <div class="diag-block-title">🔑 Chiavi globali ereditate (${Object.keys(globals).length})</div>
+      ${renderKv(globals)}
+    </div>
+    <div class="diag-block">
+      <div class="diag-block-title">🔐 Impostazioni specifiche di questo pianeta (${Object.keys(toolSettings).length})</div>
+      ${renderKv(toolSettings)}
+    </div>
+    <div class="diag-block">
+      <div class="diag-block-title">📦 Totale iniettato all'apertura (${Object.keys(merged).length})</div>
+      <div class="diag-kv" style="color:var(--muted);font-size:0.72rem">
+        Quando clicchi sul pianeta, queste chiavi vengono scritte nel localStorage del tool PRIMA che il tool si carichi.
+      </div>
+      ${renderKv(merged)}
+    </div>
+    <div class="diag-help">
+      ${Object.keys(merged).length === 0
+        ? '<strong>⚠ Nessuna chiave viene iniettata.</strong> Il tool si aprirà come la prima volta, con tutti i campi vuoti. Usa <strong>🔑 Importa chiavi</strong> per portarle dentro, oppure inseriscile a mano in <strong>Modifica</strong>.'
+        : '<strong>✓ ' + Object.keys(merged).length + ' chiavi pronte.</strong> Se apri il tool e i campi sono ancora vuoti, probabilmente il tool cerca chiavi con nomi diversi da questi — apri il file originale, guarda in console con <code style="background:rgba(110,231,255,0.08);color:var(--accent2);padding:1px 5px;border-radius:3px">Object.keys(localStorage)</code> quali nomi usa, e confronta con quelli qui sopra.'
+      }
+    </div>
+  `;
+  document.getElementById('diagContent').innerHTML = html;
+  diagModal.classList.add('show');
+}
+
+/* ============ FLOATING ADD BUTTON ============ */
+// Click FAB → open system file picker directly (no modal)
+document.getElementById('addFab').addEventListener('click', () => {
+  document.getElementById('globalFileInput').click();
+});
+document.getElementById('globalFileInput').addEventListener('change', async e => {
+  const files = Array.from(e.target.files || []);
+  e.target.value = ''; // allow re-selecting the same file
+  for(const f of files){
+    if(!/\.html?$/i.test(f.name)){
+      showToast('✗ Salto "' + f.name + '": non è HTML', 'err');
+      continue;
+    }
+    await uploadAndSaveInstantly(f);
+  }
+});
+
+/* ============ DRAG & DROP + UPLOAD PROGRESS ============ */
+const dropOverlay = document.getElementById('dropOverlay');
+const uploadProgress = document.getElementById('uploadProgress');
+let dragCounter = 0;
+
+function hasFiles(dataTransfer){
+  if(!dataTransfer) return false;
+  if(dataTransfer.items && dataTransfer.items.length){
+    for(const it of dataTransfer.items){ if(it.kind === 'file') return true; }
+  }
+  return dataTransfer.types && Array.from(dataTransfer.types).includes('Files');
+}
+
+document.addEventListener('dragenter', e => {
+  if(!hasFiles(e.dataTransfer)) return;
+  e.preventDefault();
+  dragCounter++;
+  if(dragCounter === 1) dropOverlay.classList.add('show');
+});
+document.addEventListener('dragover', e => {
+  if(!hasFiles(e.dataTransfer)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+});
+document.addEventListener('dragleave', e => {
+  if(!hasFiles(e.dataTransfer)) return;
+  dragCounter--;
+  if(dragCounter <= 0){
+    dragCounter = 0;
+    dropOverlay.classList.remove('show');
+  }
+});
+document.addEventListener('drop', async e => {
+  e.preventDefault();
+  dragCounter = 0;
+  dropOverlay.classList.remove('show');
+  const files = Array.from(e.dataTransfer.files || []);
+  if(files.length === 0) return;
+  for(const f of files){
+    if(!/\.html?$/i.test(f.name)){
+      showToast('✗ Salto "' + f.name + '": non è HTML', 'err');
+      continue;
+    }
+    await uploadAndSaveInstantly(f);
+  }
+});
+
+/* Read file with progress bar, then save the tool immediately —
+   no modal, no questions. Name is derived from filename.
+   Emoji/theme rotate for visual variety. Settings start empty —
+   the user configures them later via right-click → Modifica. */
+const EMOJI_POOL = ['🚀','🎬','🎨','🛠','🔮','📸','🎯','⚡','🌟','🎪','🎭','🎨','🧩','📊','🎤','✨'];
+const THEME_POOL = ['photo','voice','text','creative'];
+
+function uploadAndSaveInstantly(file){
+  return new Promise(resolve => {
+    const kb = Math.round(file.size / 1024);
+    document.getElementById('upTitle').innerText = 'Caricamento…';
+    document.getElementById('upFile').innerText = file.name + ' (' + kb + ' KB)';
+    document.getElementById('upFill').style.width = '0%';
+    document.getElementById('upPct').innerText = '0%';
+    uploadProgress.classList.remove('done');
+    uploadProgress.classList.add('show');
+
+    const reader = new FileReader();
+    reader.onprogress = ev => {
+      if(ev.lengthComputable){
+        const pct = Math.round((ev.loaded / ev.total) * 100);
+        document.getElementById('upFill').style.width = pct + '%';
+        document.getElementById('upPct').innerText = pct + '%';
+      }
+    };
+    reader.onload = () => {
+      document.getElementById('upFill').style.width = '100%';
+      document.getElementById('upPct').innerText = '100% ✓';
+      document.getElementById('upTitle').innerText = '✓ Aggiunto in orbita';
+      uploadProgress.classList.add('done');
+
+      // Derive a clean name from filename
+      const cleanName = file.name
+        .replace(/\.html?$/i,'')
+        .replace(/[_-]/g,' ')
+        .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+        .replace(/\s*v\d+.*$/i,'')
+        .replace(/\s*\(\d+\)\s*/,' ')
+        .replace(/\s+/g,' ')
+        .replace(/\b\w/g, c => c.toUpperCase())
+        .trim() || 'Strumento';
+
+      saveNewTool({
+        name: cleanName,
+        file: file.name,
+        dataUrl: reader.result
+      });
+
+      setTimeout(() => uploadProgress.classList.remove('show'), 900);
+      resolve();
+    };
+    reader.onerror = () => {
+      document.getElementById('upTitle').innerText = '✗ Errore lettura file';
+      setTimeout(() => uploadProgress.classList.remove('show'), 2500);
+      resolve();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* Save a new tool directly to localStorage. Handles duplicate detection
+   (same filename stem → offer replace), auto-assigns orbit/angle/emoji/theme. */
+/* Decode a data URL (base64 or url-encoded) back to the raw HTML string,
+   so we can scan it for localStorage key names. */
+function decodeDataUrlToText(dataUrl){
+  try{
+    const commaIdx = dataUrl.indexOf(',');
+    if(commaIdx < 0) return '';
+    const meta = dataUrl.slice(5, commaIdx);
+    const isBase64 = meta.includes('base64');
+    const payload = dataUrl.slice(commaIdx + 1);
+    if(isBase64){
+      const bin = atob(payload);
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      return new TextDecoder('utf-8').decode(bytes);
+    } else {
+      return decodeURIComponent(payload);
+    }
+  } catch(e){
+    return '';
+  }
+}
+
+/* Scan a tool's HTML for localStorage key names used via:
+   - localStorage.getItem('KEY')
+   - localStorage.setItem('KEY', ...)
+   - localStorage.removeItem('KEY')
+   - localStorage['KEY'] / localStorage.KEY
+   Ignore obviously-non-key patterns and dedupe. */
+function extractLocalStorageKeys(html){
+  if(!html) return [];
+  const found = new Set();
+
+  // Match .getItem('...'), .setItem('...' / "...", ...
+  const reMethods = /localStorage\s*\.\s*(?:getItem|setItem|removeItem)\s*\(\s*['"`]([^'"`]+?)['"`]/g;
+  let m;
+  while((m = reMethods.exec(html)) !== null){
+    found.add(m[1]);
+  }
+
+  // Match localStorage['KEY']
+  const reBracket = /localStorage\s*\[\s*['"`]([^'"`]+?)['"`]\s*\]/g;
+  while((m = reBracket.exec(html)) !== null){
+    found.add(m[1]);
+  }
+
+  // Filter out obvious non-key captures (empty, placeholders, template literal expressions)
+  return [...found].filter(k => {
+    if(!k || k.length === 0 || k.length > 80) return false;
+    if(k.includes('${') || k.includes('{{')) return false;
+    return true;
+  });
+}
+
+/* Merge freshly-found localStorage keys from a new tool into the global settings.
+   New keys are added with empty string values — the user fills them in once in
+   ⚙ Impostazioni → Chiavi globali and they propagate to every tool that uses them.
+   Existing global keys are NEVER overwritten. */
+function mergeNewKeysIntoGlobals(keys){
+  const globals = loadGlobalSettings();
+  let added = 0;
+  keys.forEach(k => {
+    if(!(k in globals)){
+      globals[k] = '';
+      added++;
+    }
+  });
+  if(added > 0){
+    localStorage.setItem('ar_global_settings', JSON.stringify(globals));
+  }
+  return added;
+}
+
+function saveNewTool({name, file, dataUrl}){
+  const existing = loadCustomTools();
+
+  const normalizeName = s => (s||'').toLowerCase()
+    .replace(/\.html?$/i,'')
+    .replace(/[_\s-]+/g,' ')
+    .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+    .replace(/\s*v\d+.*$/i,'')
+    .replace(/\s*\(\d+\)\s*/,' ')
+    .trim();
+
+  const newStem = normalizeName(file);
+  const existingMatch = existing.find(t => {
+    const tStem = normalizeName(t.file);
+    return tStem && tStem === newStem;
+  });
+
+  // Size warning only for really big files (>3MB)
+  const sizeKb = (dataUrl.length * 0.75) / 1024;
+  if(sizeKb > 3000){
+    if(!confirm('⚠ Il file pesa ~' + Math.round(sizeKb) + ' KB. Il browser limita il localStorage a ~5MB totali. Continuare?')){
+      return;
+    }
+  }
+
+  let updatedList;
+  let actionMsg;
+
+  if(existingMatch){
+    // Same file stem → auto-replace, keeping the same orbit slot AND the user's
+    // previous settings (so API keys configured on v12 survive when uploading v13).
+    updatedList = existing.map(t => {
+      if(t.id === existingMatch.id){
+        return {
+          ...t,
+          // keep name/emoji/theme/desc/settings from existing — just update the file
+          file: file,
+          dataUrl: dataUrl,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return t;
+    });
+    actionMsg = '🔄 "' + existingMatch.name + '" aggiornato (' + file + ')';
+  } else {
+    // Brand new tool — auto-assign orbit slot, emoji, theme
+    const slotIdx = existing.length % NEW_TOOL_SLOTS.length;
+    const slot = NEW_TOOL_SLOTS[slotIdx];
+    const emoji = EMOJI_POOL[existing.length % EMOJI_POOL.length];
+    const theme = THEME_POOL[existing.length % THEME_POOL.length];
+    updatedList = [...existing, {
+      id: 'custom_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+      name, emoji, theme,
+      desc: '',
+      settings: {},
+      source: 'custom',
+      file: file,
+      dataUrl: dataUrl,
+      orbit: slot.orbit, angle: slot.angle, duration: slot.duration,
+      createdAt: new Date().toISOString()
+    }];
+    actionMsg = '🚀 "' + name + '" in orbita';
+  }
+
+  try{
+    saveCustomTools(updatedList);
+  } catch(err){
+    showToast('✗ Spazio esaurito nel browser — rimuovi qualche tool', 'err');
+    return;
+  }
+
+  // === Scan the tool's HTML for localStorage keys and add missing ones to globals ===
+  // This is what makes the "fill it once, works everywhere" promise true:
+  // the moment a tool is added, AR Nova learns which keys it needs and exposes
+  // them in ⚙ Impostazioni → Chiavi globali (empty). The user fills them in once,
+  // and from then on they're automatically injected into this and any other tool
+  // that uses the same key names.
+  try{
+    const html = decodeDataUrlToText(dataUrl);
+    const foundKeys = extractLocalStorageKeys(html);
+    // Skip AR Nova's own internal keys (they shouldn't be exposed as user settings)
+    const relevantKeys = foundKeys.filter(k => !k.startsWith('ar_custom_tools')
+                                              && !k.startsWith('ar_log')
+                                              && !k.startsWith('ar_userInitials')
+                                              && !k.startsWith('ar_customMotto')
+                                              && !k.startsWith('ar_global_settings')
+                                              && !k.startsWith('ar_helpHidden')
+                                              && !k.startsWith('ar_skipImportPrompt'));
+    const addedCount = mergeNewKeysIntoGlobals(relevantKeys);
+    renderSatellites();
+    renderStats();
+    if(addedCount > 0){
+      showToast(actionMsg + ' · ' + addedCount + ' chiavi da compilare in ⚙', 'ok');
+      // Open settings automatically so the user sees what to fill in
+      setTimeout(() => {
+        if(confirm('🔑 Ho trovato ' + addedCount + ' chiavi che questo tool userà:\n\n  ' +
+                   relevantKeys.slice(0, 10).join('\n  ') +
+                   (relevantKeys.length > 10 ? '\n  …' : '') +
+                   '\n\nSono state aggiunte (vuote) alle Impostazioni globali. Aprire ora per compilarle?')){
+          loadSettings();
+          document.getElementById('settingsModal').classList.add('show');
+          document.getElementById('globalKvCollapsible').classList.add('open');
+        }
+      }, 400);
+    } else {
+      showToast(actionMsg, 'ok');
+    }
+  } catch(e){
+    console.warn('[AR Nova] Key extraction failed:', e);
+    renderSatellites();
+    renderStats();
+    showToast(actionMsg, 'ok');
+  }
+}
+
+// Keyboard shortcut: press + anywhere (not in an input) to open file picker
+document.addEventListener('keydown', e => {
+  if(e.key === '+' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+    document.getElementById('globalFileInput').click();
+  }
+});
+
+/* ============ INIT ============ */
+// Help strip: hide if user closed it before
+if(localStorage.getItem('ar_helpHidden') === '1'){
+  document.getElementById('helpStrip').classList.add('hidden');
+}
+document.getElementById('helpClose').addEventListener('click', () => {
+  document.getElementById('helpStrip').classList.add('hidden');
+  localStorage.setItem('ar_helpHidden', '1');
+});
+
+renderSatellites();
+renderStats();
+startMotivationalLoop();
+</script>
+</body>
+</html>
