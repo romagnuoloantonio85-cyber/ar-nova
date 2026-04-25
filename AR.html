@@ -1819,12 +1819,13 @@ function launchTool(tool){
         // Inject globals FIRST, then this tool's own settings (which can override).
         // Blob URLs have a different origin than AR Nova, so localStorage is NOT shared —
         // we pre-seed the opened page with all keys via a bootstrap script.
+        // ALSO: the bootstrap installs a two-way sync via postMessage, so any key the tool
+        // saves later (or had already saved) is mirrored back into AR Nova's globals.
         const globalSettings = loadGlobalSettings();
         const toolSettings = tool.settings || {};
         const merged = Object.assign({}, globalSettings, toolSettings);
-        const keyCount = Object.keys(merged).length;
         const bootstrap = '<script>'
-          + 'try{'
+          + '(function(){try{'
           +   'const _arKeys = ' + JSON.stringify(merged) + ';'
           +   'const _arInjected = [];'
           +   'Object.entries(_arKeys).forEach(([k,v]) => {'
@@ -1833,11 +1834,40 @@ function launchTool(tool){
           +       '_arInjected.push(k);'
           +     '}'
           +   '});'
-          +   'console.log("%c[AR Nova] Iniettate "+_arInjected.length+" chiavi nel localStorage:", "color:#b084ff;font-weight:bold", _arInjected);'
-          +   'if(_arInjected.length === 0){'
-          +     'console.warn("[AR Nova] Nessuna chiave iniettata. Apri AR Nova → click destro sul pianeta → 🔑 Importa chiavi dal file originale");'
+          +   'console.log("%c[AR Nova] Iniettate "+_arInjected.length+" chiavi:", "color:#b084ff;font-weight:bold", _arInjected);'
+
+          // ===== TWO-WAY SYNC =====
+          // Send all current localStorage keys back to AR Nova (the opener window).
+          // AR Nova will store any keys it doesn't already have in its global settings.
+          +   'function _arSendAll(reason){'
+          +     'try{'
+          +       'const all = {};'
+          +       'for(let i=0;i<localStorage.length;i++){'
+          +         'const k = localStorage.key(i);'
+          +         'if(k) all[k] = localStorage.getItem(k);'
+          +       '}'
+          +       'if(window.opener && !window.opener.closed){'
+          +         'window.opener.postMessage({type:"ar-nova-sync",reason:reason,keys:all}, "*");'
+          +       '}'
+          +     '}catch(e){console.warn("[AR Nova] sync failed:",e);}'
           +   '}'
-          + '}catch(e){console.error("[AR Nova] Bootstrap failed:", e);}'
+
+          // Initial sync: tell AR Nova what's currently in this tool's localStorage.
+          +   '_arSendAll("initial");'
+
+          // Wrap setItem/removeItem so every change is mirrored to AR Nova.
+          +   'const _origSet = localStorage.setItem.bind(localStorage);'
+          +   'const _origRem = localStorage.removeItem.bind(localStorage);'
+          +   'localStorage.setItem = function(k,v){'
+          +     '_origSet(k,v);'
+          +     '_arSendAll("setItem:"+k);'
+          +   '};'
+          +   'localStorage.removeItem = function(k){'
+          +     '_origRem(k);'
+          +     '_arSendAll("removeItem:"+k);'
+          +   '};'
+
+          + '}catch(e){console.error("[AR Nova] Bootstrap failed:", e);}})();'
           + '<' + '/script>';
 
         // Inject bootstrap just after <head> (or at the very top if no head tag found)
@@ -3001,6 +3031,65 @@ document.addEventListener('keydown', e => {
     document.getElementById('globalFileInput').click();
   }
 });
+
+/* ============ TWO-WAY SYNC: ricevi le chiavi dai tool aperti ============
+   Quando un tool salva qualcosa nel suo localStorage (o ce l'ha già da prima),
+   il bootstrap iniettato ce lo manda via postMessage. Noi aggiungiamo le chiavi
+   che ancora non abbiamo nelle globali, e aggiorniamo i valori di quelle che
+   abbiamo già se il tool ne ha una versione più recente. */
+(function setupToolSyncListener(){
+  // Set of localStorage key names that belong to AR Nova itself —
+  // never importarle dai tool, sennò si rompe tutto.
+  const AR_RESERVED = new Set([
+    'ar_custom_tools', 'ar_log', 'ar_userInitials', 'ar_customMotto',
+    'ar_global_settings', 'ar_helpHidden'
+  ]);
+
+  window.addEventListener('message', e => {
+    const msg = e.data;
+    if(!msg || msg.type !== 'ar-nova-sync' || typeof msg.keys !== 'object') return;
+
+    const incoming = msg.keys;
+    const globals = loadGlobalSettings();
+    let added = [];
+    let updated = [];
+
+    Object.entries(incoming).forEach(([k, v]) => {
+      if(!k) return;
+      if(AR_RESERVED.has(k)) return;
+      if(k.startsWith('ar_skipImportPrompt_')) return;
+      // Skip empty values — non vogliamo riempire le globali di chiavi vuote
+      if(v === '' || v === null || v === undefined) return;
+
+      if(!(k in globals)){
+        globals[k] = v;
+        added.push(k);
+      } else if(globals[k] !== v && globals[k] === ''){
+        // Update only if our slot is empty (don't clobber a user-set value)
+        globals[k] = v;
+        updated.push(k);
+      }
+    });
+
+    if(added.length > 0 || updated.length > 0){
+      try{
+        localStorage.setItem('ar_global_settings', JSON.stringify(globals));
+        // If the settings modal is currently open, refresh the editor view
+        const modal = document.getElementById('settingsModal');
+        if(modal && modal.classList.contains('show')){
+          renderGlobalKv();
+        }
+        if(added.length > 0){
+          showToast('🔑 +' + added.length + ' chiavi salvate da ' + (msg.reason || 'tool'), 'ok');
+        }
+        console.log('%c[AR Nova] Sync ricevuta:', 'color:#6ee7ff;font-weight:bold',
+                    {added, updated, reason: msg.reason});
+      } catch(err){
+        console.error('[AR Nova] Sync save failed:', err);
+      }
+    }
+  });
+})();
 
 /* ============ INIT ============ */
 // Help strip: hide if user closed it before
