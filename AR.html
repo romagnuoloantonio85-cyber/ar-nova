@@ -1222,14 +1222,14 @@ body.has-tools .empty-hint{display:none}
     <span class="fab-mn-ic">📁</span>
     <div class="fab-mn-body">
       <strong>Carica file HTML</strong>
-      <span class="fab-mn-sub">Drag & drop o seleziona dal disco</span>
+      <span class="fab-mn-sub" id="fabFileSub">Trascina o seleziona dal disco</span>
     </div>
   </button>
   <button class="fab-menu-item" id="fabMenuUrl">
     <span class="fab-mn-ic">🌐</span>
     <div class="fab-mn-body">
-      <strong>Aggiungi da URL GitHub</strong>
-      <span class="fab-mn-sub">Consigliato — i dati persistono sempre</span>
+      <strong>Aggiungi da URL</strong>
+      <span class="fab-mn-sub">Per tool già online (URL pubblico)</span>
     </div>
   </button>
 </div>
@@ -1352,6 +1352,49 @@ body.has-tools .empty-hint{display:none}
           <strong style="color:var(--text)">Esempi di chiavi comuni che userai per più tool:</strong><br>
           <code>ar_apiKey</code> = la tua chiave kie.ai · <code>ar_cldCloud</code> = cloud Cloudinary · <code>ar_cldPreset</code> = preset Cloudinary · <code>openai_key</code> · <code>gemini_key</code>…<br>
           <span style="opacity:0.7">💡 Inseriscile una volta qui — ogni nuovo tool le avrà automaticamente.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-group collapsible" id="githubCollapsible">
+      <div class="collapsible-head" id="githubToggle">
+        <span class="chev">▶</span>
+        <h3>🐙 GitHub — telecomando del repo</h3>
+        <span class="sub" id="githubStatus">non configurato</span>
+      </div>
+      <div class="collapsible-body">
+        <div class="hint" style="margin-top:10px;margin-bottom:14px">
+          Se configurato, AR Nova può <strong style="color:var(--text)">caricare ed eliminare i tool direttamente</strong> nel tuo repo GitHub Pages — niente più copia-incolla manuale.<br>
+          Il token resta solo nel tuo browser, non viene mai mandato altrove.
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Username GitHub</label>
+            <input type="text" id="ghOwner" placeholder="es. romagnuoloantonio85-cyber" autocomplete="off">
+          </div>
+          <div>
+            <label>Nome repository</label>
+            <input type="text" id="ghRepo" placeholder="es. ar-nova" autocomplete="off">
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <label>Cartella tool dentro il repo</label>
+          <input type="text" id="ghFolder" placeholder="tools" value="tools" autocomplete="off">
+          <div class="hint" style="margin-top:6px">I file dei tool vengono salvati qui dentro. Default: <code style="color:var(--accent2)">tools/</code></div>
+        </div>
+        <div style="margin-top:14px">
+          <label>Personal Access Token <span style="color:var(--err)">*</span></label>
+          <input type="password" id="ghToken" placeholder="github_pat_..." autocomplete="off">
+          <div class="hint" style="margin-top:6px">
+            <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:var(--accent2)">Generane uno qui</a> →
+            "Only select repositories" → seleziona il repo → permission "Contents: Read and write".
+          </div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn" id="ghTest">🧪 Verifica connessione</button>
+          <span id="ghTestStatus" class="test-status" style="align-self:center"></span>
         </div>
       </div>
     </div>
@@ -1677,6 +1720,13 @@ const ORBIT_RADII = { 1: 19, 2: 30, 3: 41, 4: 50 };
 function loadSettings(){
   document.getElementById('userInitials').value = localStorage.getItem('ar_userInitials') || '';
   document.getElementById('customMotto').value = localStorage.getItem('ar_customMotto') || '';
+  // GitHub fields
+  const gh = loadGithubConfig();
+  document.getElementById('ghOwner').value = gh.owner || '';
+  document.getElementById('ghRepo').value = gh.repo || '';
+  document.getElementById('ghFolder').value = gh.folder || 'tools';
+  document.getElementById('ghToken').value = gh.token || '';
+  updateGithubStatusUI();
   renderGlobalKv();
 }
 function saveSettings(){
@@ -1685,6 +1735,136 @@ function saveSettings(){
   // Save global kv from editor
   const globals = globalKvCollect();
   localStorage.setItem('ar_global_settings', JSON.stringify(globals));
+  // Save GitHub config
+  const ghConfig = {
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    folder: (document.getElementById('ghFolder').value.trim() || 'tools').replace(/^\/+|\/+$/g, ''),
+    token: document.getElementById('ghToken').value.trim()
+  };
+  localStorage.setItem('ar_github_config', JSON.stringify(ghConfig));
+  updateGithubStatusUI();
+}
+
+function loadGithubConfig(){
+  try{ return JSON.parse(localStorage.getItem('ar_github_config') || '{}'); }
+  catch(e){ return {}; }
+}
+
+/* ============ GITHUB API HELPERS ============
+   Uses the Contents API: PUT to create/update, DELETE to remove. All operations
+   require a fine-grained PAT with "Contents: Read and write" on the repo. */
+async function githubApi(path, options = {}){
+  const c = loadGithubConfig();
+  if(!c.owner || !c.repo || !c.token) throw new Error('GitHub non configurato');
+  const url = 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) + path;
+  const headers = Object.assign({
+    'Accept': 'application/vnd.github+json',
+    'Authorization': 'Bearer ' + c.token,
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json'
+  }, options.headers || {});
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+  if(!res.ok && res.status !== 404){
+    const text = await res.text();
+    throw new Error('GitHub ' + res.status + ': ' + text.slice(0, 200));
+  }
+  return res;
+}
+
+/* Convert a string to UTF-8 base64 (the GitHub API needs base64-encoded content) */
+function utf8ToBase64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+/* Get the SHA of an existing file (needed to update or delete it).
+   Returns null if the file doesn't exist. */
+async function githubGetFileSha(filepath){
+  const res = await githubApi('/contents/' + filepath.split('/').map(encodeURIComponent).join('/'));
+  if(res.status === 404) return null;
+  const data = await res.json();
+  return data.sha || null;
+}
+
+/* Upload (create or update) a file in the repo. Returns the public Pages URL. */
+async function githubUploadFile(filename, content, commitMessage){
+  const c = loadGithubConfig();
+  const folder = c.folder || 'tools';
+  const path = folder ? folder + '/' + filename : filename;
+  const sha = await githubGetFileSha(path);
+  const body = {
+    message: commitMessage || ('AR Nova: upload ' + filename),
+    content: utf8ToBase64(content)
+  };
+  if(sha) body.sha = sha; // update existing file
+  const res = await githubApi('/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error('Upload fallito: ' + text.slice(0, 200));
+  }
+  // Pages URL: https://<owner>.github.io/<repo>/<path>
+  return 'https://' + c.owner + '.github.io/' + c.repo + '/' + path;
+}
+
+async function githubDeleteFile(filename, commitMessage){
+  const c = loadGithubConfig();
+  const folder = c.folder || 'tools';
+  const path = folder ? folder + '/' + filename : filename;
+  const sha = await githubGetFileSha(path);
+  if(!sha) return false; // already gone
+  const body = {
+    message: commitMessage || ('AR Nova: delete ' + filename),
+    sha
+  };
+  const res = await githubApi('/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
+    method: 'DELETE',
+    body: JSON.stringify(body)
+  });
+  return res.ok;
+}
+
+/* Test connection: does the repo exist + does the token work? */
+async function githubTest(){
+  const c = loadGithubConfig();
+  if(!c.owner || !c.repo || !c.token){
+    return { ok: false, msg: 'Compila tutti i campi prima' };
+  }
+  try{
+    const res = await githubApi('');
+    if(res.status === 404) return { ok: false, msg: 'Repo non trovato (' + c.owner + '/' + c.repo + ')' };
+    if(!res.ok) return { ok: false, msg: 'HTTP ' + res.status };
+    const data = await res.json();
+    if(!data.permissions || !data.permissions.push){
+      return { ok: false, msg: 'Token senza permesso di scrittura. Controlla i permessi.' };
+    }
+    return { ok: true, msg: '✓ Pronto — repo: ' + data.full_name };
+  } catch(err){
+    return { ok: false, msg: err.message };
+  }
+}
+
+
+function isGithubReady(){
+  const c = loadGithubConfig();
+  return !!(c.owner && c.repo && c.token);
+}
+function updateGithubStatusUI(){
+  const el = document.getElementById('githubStatus');
+  if(!el) return;
+  const c = loadGithubConfig();
+  if(c.owner && c.repo && c.token){
+    el.innerText = '✓ ' + c.owner + '/' + c.repo;
+    el.style.color = 'var(--ok)';
+  } else {
+    el.innerText = 'non configurato';
+    el.style.color = 'var(--muted)';
+  }
 }
 
 function loadGlobalSettings(){
@@ -2027,13 +2207,26 @@ function showDeletionProgress(tool, wrap){
   }, 20); // 20ms * 25 = 500ms
 }
 
-function removeCustomTool(id){
-  const list = loadCustomTools().filter(t => t.id !== id);
-  saveCustomTools(list);
+async function removeCustomTool(id){
+  const list = loadCustomTools();
+  const tool = list.find(t => t.id === id);
+  // If this tool was uploaded by AR Nova to GitHub, delete the file there too
+  if(tool && tool.ghManaged && tool.file && isGithubReady()){
+    try{
+      showToast('☁ Cancello da GitHub…', 'ok');
+      await githubDeleteFile(tool.file, 'AR Nova: remove ' + tool.name);
+    } catch(err){
+      // Don't block local removal if remote delete fails — just warn
+      console.warn('[AR Nova] GitHub delete failed:', err);
+      showToast('⚠ Rimosso localmente ma non da GitHub: ' + err.message.slice(0, 60), 'err');
+    }
+  }
+  const newList = list.filter(t => t.id !== id);
+  saveCustomTools(newList);
   localStorage.removeItem('ar_skipImportPrompt_' + id);
   renderSatellites();
   renderStats();
-  showToast('Tool rimosso dall\'ecosistema', 'ok');
+  showToast('🗑 ' + (tool ? tool.name : 'Tool') + ' rimosso', 'ok');
 }
 
 function launchTool(tool){
@@ -2443,6 +2636,40 @@ document.getElementById('globalKvAdd').addEventListener('click', () => {
 });
 document.getElementById('globalKvToggle').addEventListener('click', () => {
   document.getElementById('globalKvCollapsible').classList.toggle('open');
+});
+
+/* ============ GITHUB CONFIG HANDLERS ============ */
+document.getElementById('githubToggle').addEventListener('click', () => {
+  document.getElementById('githubCollapsible').classList.toggle('open');
+});
+document.getElementById('ghTest').addEventListener('click', async () => {
+  // Save current form values first so the test uses what the user just typed
+  const tempConfig = {
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    folder: (document.getElementById('ghFolder').value.trim() || 'tools').replace(/^\/+|\/+$/g, ''),
+    token: document.getElementById('ghToken').value.trim()
+  };
+  // Persist temporarily so githubTest() reads the same values
+  const oldConfig = localStorage.getItem('ar_github_config');
+  localStorage.setItem('ar_github_config', JSON.stringify(tempConfig));
+
+  const status = document.getElementById('ghTestStatus');
+  status.innerText = 'Test in corso…';
+  status.className = 'test-status testing';
+  try{
+    const result = await githubTest();
+    status.innerText = result.msg;
+    status.className = 'test-status ' + (result.ok ? 'ok' : 'err');
+    if(!result.ok && oldConfig){
+      // Restore the old config if the new one fails (don't lose what was working)
+      localStorage.setItem('ar_github_config', oldConfig);
+    }
+    updateGithubStatusUI();
+  } catch(err){
+    status.innerText = '✗ ' + err.message;
+    status.className = 'test-status err';
+  }
 });
 
 /* ============ IMPORT FROM ORIGINAL FILE ============ */
@@ -2969,6 +3196,12 @@ function hideFabMenu(){ fabMenu.classList.remove('show'); }
 
 document.getElementById('addFab').addEventListener('click', e => {
   e.stopPropagation();
+  // Refresh the file sub-label so the user sees if upload goes to GitHub or stays local
+  const sub = document.getElementById('fabFileSub');
+  if(sub){
+    if(isGithubReady()) sub.innerText = '☁ Carico su GitHub (i dati persistono)';
+    else sub.innerText = 'Trascina o seleziona — modalità locale';
+  }
   if(fabMenu.classList.contains('show')){ hideFabMenu(); }
   else { showFabMenu(); }
 });
@@ -3466,7 +3699,9 @@ const THEME_POOL = ['photo','voice','text','creative'];
 function uploadAndSaveInstantly(file){
   return new Promise(resolve => {
     const kb = Math.round(file.size / 1024);
-    document.getElementById('upTitle').innerText = 'Caricamento…';
+    const useGithub = isGithubReady();
+
+    document.getElementById('upTitle').innerText = useGithub ? 'Lettura file…' : 'Caricamento…';
     document.getElementById('upFile').innerText = file.name + ' (' + kb + ' KB)';
     document.getElementById('upFill').style.width = '0%';
     document.getElementById('upPct').innerText = '0%';
@@ -3474,46 +3709,141 @@ function uploadAndSaveInstantly(file){
     uploadProgress.classList.add('show');
 
     const reader = new FileReader();
-    reader.onprogress = ev => {
-      if(ev.lengthComputable){
-        const pct = Math.round((ev.loaded / ev.total) * 100);
-        document.getElementById('upFill').style.width = pct + '%';
-        document.getElementById('upPct').innerText = pct + '%';
-      }
-    };
-    reader.onload = () => {
-      document.getElementById('upFill').style.width = '100%';
-      document.getElementById('upPct').innerText = '100% ✓';
-      document.getElementById('upTitle').innerText = '✓ Aggiunto in orbita';
-      uploadProgress.classList.add('done');
 
-      // Derive a clean name from filename
-      const cleanName = file.name
-        .replace(/\.html?$/i,'')
-        .replace(/[_-]/g,' ')
-        .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
-        .replace(/\s*v\d+.*$/i,'')
-        .replace(/\s*\(\d+\)\s*/,' ')
-        .replace(/\s+/g,' ')
-        .replace(/\b\w/g, c => c.toUpperCase())
-        .trim() || 'Strumento';
+    if(useGithub){
+      // Read as text → upload to GitHub → save planet pointing to the Pages URL
+      reader.onload = async () => {
+        document.getElementById('upFill').style.width = '50%';
+        document.getElementById('upPct').innerText = '50%';
+        document.getElementById('upTitle').innerText = '☁ Carico su GitHub…';
 
-      saveNewTool({
-        name: cleanName,
-        file: file.name,
-        dataUrl: reader.result
-      });
+        const cleanName = file.name
+          .replace(/\.html?$/i,'')
+          .replace(/[_-]/g,' ')
+          .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+          .replace(/\s*v\d+.*$/i,'')
+          .replace(/\s*\(\d+\)\s*/,' ')
+          .replace(/\s+/g,' ')
+          .replace(/\b\w/g, c => c.toUpperCase())
+          .trim() || 'Strumento';
 
-      setTimeout(() => uploadProgress.classList.remove('show'), 900);
-      resolve();
-    };
-    reader.onerror = () => {
-      document.getElementById('upTitle').innerText = '✗ Errore lettura file';
-      setTimeout(() => uploadProgress.classList.remove('show'), 2500);
-      resolve();
-    };
-    reader.readAsDataURL(file);
+        // Slugify the filename for the repo path: lowercase, no spaces, no parens.
+        // Strip version/date suffixes so re-uploading a new version overwrites the same file
+        // (e.g. "tool_v7.html" and "tool_v8.html" both become "tool.html" → cleaner versioning via git).
+        const slugFile = file.name.toLowerCase()
+          .replace(/\.html?$/i,'')
+          .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')   // strip dates
+          .replace(/[_\s-]*v\d+.*$/i,'')                  // strip _v7, -v15, etc.
+          .replace(/[_\s-]*\(\d+\).*$/,'')                // strip (1), (16) etc.
+          .replace(/[_\s]+/g,'-')
+          .replace(/[^a-z0-9-]/g,'')
+          .replace(/-+/g,'-')
+          .replace(/^-|-$/g,'') + '.html';
+
+        try{
+          const publicUrl = await githubUploadFile(slugFile, reader.result, 'AR Nova: ' + cleanName);
+          document.getElementById('upFill').style.width = '100%';
+          document.getElementById('upPct').innerText = '100% ✓';
+          document.getElementById('upTitle').innerText = '✓ Caricato su GitHub';
+          uploadProgress.classList.add('done');
+          // Save planet referencing the URL (no dataUrl → opens at the public URL,
+          // same domain as AR Nova → localStorage shared → all data persists)
+          saveNewToolFromUrl({ name: cleanName, url: publicUrl, file: slugFile, _ghManaged: true });
+        } catch(err){
+          document.getElementById('upTitle').innerText = '✗ ' + err.message.slice(0, 80);
+          showToast('✗ Errore GitHub: ' + err.message, 'err');
+        }
+        setTimeout(() => uploadProgress.classList.remove('show'), 1500);
+        resolve();
+      };
+      reader.onerror = () => {
+        document.getElementById('upTitle').innerText = '✗ Errore lettura file';
+        setTimeout(() => uploadProgress.classList.remove('show'), 2500);
+        resolve();
+      };
+      reader.readAsText(file, 'utf-8');
+    } else {
+      // Fallback: legacy blob mode (when GitHub is not configured)
+      reader.onprogress = ev => {
+        if(ev.lengthComputable){
+          const pct = Math.round((ev.loaded / ev.total) * 100);
+          document.getElementById('upFill').style.width = pct + '%';
+          document.getElementById('upPct').innerText = pct + '%';
+        }
+      };
+      reader.onload = () => {
+        document.getElementById('upFill').style.width = '100%';
+        document.getElementById('upPct').innerText = '100% ✓';
+        document.getElementById('upTitle').innerText = '✓ Aggiunto in orbita';
+        uploadProgress.classList.add('done');
+
+        const cleanName = file.name
+          .replace(/\.html?$/i,'')
+          .replace(/[_-]/g,' ')
+          .replace(/\s*\d{4}[-_]\d{2}[-_]\d{2}.*$/,'')
+          .replace(/\s*v\d+.*$/i,'')
+          .replace(/\s*\(\d+\)\s*/,' ')
+          .replace(/\s+/g,' ')
+          .replace(/\b\w/g, c => c.toUpperCase())
+          .trim() || 'Strumento';
+
+        saveNewTool({
+          name: cleanName,
+          file: file.name,
+          dataUrl: reader.result
+        });
+
+        setTimeout(() => uploadProgress.classList.remove('show'), 900);
+        resolve();
+      };
+      reader.onerror = () => {
+        document.getElementById('upTitle').innerText = '✗ Errore lettura file';
+        setTimeout(() => uploadProgress.classList.remove('show'), 2500);
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    }
   });
+}
+
+/* Save a URL-based tool (created either via the URL modal or via GitHub upload).
+   The _ghManaged flag tells the delete handler to also remove the file from GitHub. */
+function saveNewToolFromUrl({name, url, file, emoji, theme, _ghManaged}){
+  const existing = loadCustomTools();
+  // Dedup by URL
+  const dup = existing.find(t => t.url === url);
+  if(dup){
+    const updated = existing.map(t => t.id === dup.id ? {
+      ...t, name: name || t.name, url, file: file || t.file,
+      ghManaged: _ghManaged || t.ghManaged,
+      updatedAt: new Date().toISOString()
+    } : t);
+    saveCustomTools(updated);
+    renderSatellites();
+    renderStats();
+    showToast('🔄 "' + (name || dup.name) + '" aggiornato', 'ok');
+    return;
+  }
+  const slotIdx = existing.length % NEW_TOOL_SLOTS.length;
+  const slot = NEW_TOOL_SLOTS[slotIdx];
+  const newTool = {
+    id: 'custom_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    name,
+    emoji: emoji || EMOJI_POOL[existing.length % EMOJI_POOL.length],
+    theme: theme || THEME_POOL[existing.length % THEME_POOL.length],
+    desc: '',
+    settings: {},
+    source: 'custom',
+    url,
+    file: file || (url.split('/').pop() || ''),
+    ghManaged: !!_ghManaged,
+    orbit: slot.orbit, angle: slot.angle, duration: slot.duration,
+    createdAt: new Date().toISOString()
+  };
+  saveCustomTools([...existing, newTool]);
+  renderSatellites();
+  renderStats();
+  showToast('🚀 "' + name + '" in orbita', 'ok');
 }
 
 /* Save a new tool directly to localStorage. Handles duplicate detection
