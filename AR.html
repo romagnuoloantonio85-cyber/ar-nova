@@ -693,7 +693,164 @@ body.has-tools .empty-hint{display:none}
 }
 @media(max-width:640px){
   .add-fab{bottom:120px;right:16px;width:52px;height:52px}
+  .library-fab{bottom:120px;left:16px;width:52px;height:52px}
 }
+
+/* Library FAB — bottom-left, mirror of the add FAB */
+.library-fab{
+  position:fixed;
+  bottom:80px;left:24px;
+  width:56px;height:56px;
+  border-radius:50%;
+  border:none;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:1.5rem;
+  cursor:pointer;z-index:18;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  transition:transform 0.2s, background 0.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.library-fab:hover{
+  transform:scale(1.08);
+  background:rgba(176,132,255,0.12);
+  border-color:var(--accent);
+}
+
+/* FAB menu (popup above the + button) */
+.fab-menu{
+  position:fixed;
+  bottom:148px;right:24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px;
+  min-width:280px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.6);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  z-index:25;
+  display:none;
+}
+.fab-menu.show{display:block;animation:fabMenuIn 0.2s ease-out}
+@keyframes fabMenuIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.fab-menu-item{
+  display:flex;align-items:flex-start;gap:12px;
+  width:100%;
+  padding:11px 12px;
+  background:none;border:none;
+  border-radius:8px;
+  cursor:pointer;
+  color:var(--text);
+  text-align:left;
+  font-family:inherit;
+  transition:background 0.1s;
+}
+.fab-menu-item:hover{background:rgba(176,132,255,0.1)}
+.fab-mn-ic{
+  font-size:1.4rem;
+  flex-shrink:0;
+  width:32px;text-align:center;
+  line-height:1.2;
+}
+.fab-mn-body{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.fab-mn-body strong{
+  font-size:0.9rem;font-weight:500;color:var(--text);
+}
+.fab-mn-sub{
+  font-size:0.74rem;color:var(--muted);line-height:1.4;
+}
+
+/* Library modal */
+.lib-toolbar{
+  display:flex;gap:8px;
+  margin:14px 0;
+  align-items:center;flex-wrap:wrap;
+}
+.lib-toolbar input[type="text"]{
+  flex:1;min-width:200px;
+  background:rgba(255,255,255,0.03);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:9px 12px;
+  font-family:inherit;font-size:0.88rem;
+}
+.lib-toolbar input[type="text"]:focus{border-color:var(--accent);outline:none}
+.lib-toolbar select{
+  background:rgba(255,255,255,0.03);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:9px 12px;
+  font-family:inherit;font-size:0.85rem;
+  cursor:pointer;
+}
+.lib-content{
+  max-height:50vh;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:8px;
+  padding-right:6px;
+}
+.lib-empty{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+  font-size:0.9rem;
+  background:rgba(255,255,255,0.02);
+  border-radius:10px;
+  border:1px dashed var(--border);
+}
+.lib-item{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:11px 14px;
+  transition:all 0.15s;
+}
+.lib-item:hover{
+  background:rgba(176,132,255,0.06);
+  border-color:rgba(176,132,255,0.3);
+}
+.lib-item-icon{
+  font-size:1.5rem;
+  flex-shrink:0;
+  width:36px;text-align:center;
+}
+.lib-item-body{flex:1;min-width:0;overflow:hidden}
+.lib-item-name{
+  font-size:0.9rem;font-weight:500;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.lib-item-meta{
+  font-size:0.72rem;color:var(--muted);
+  margin-top:2px;
+  font-family:'JetBrains Mono',monospace;
+}
+.lib-item-meta .li-tool{color:var(--accent2)}
+.lib-item-actions{
+  display:flex;gap:4px;
+  flex-shrink:0;
+}
+.lib-item-actions button{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  color:var(--text);
+  width:32px;height:32px;
+  border-radius:7px;
+  cursor:pointer;
+  font-size:0.95rem;
+  transition:all 0.1s;
+  display:flex;align-items:center;justify-content:center;
+}
+.lib-item-actions button:hover{background:rgba(176,132,255,0.15);border-color:var(--accent)}
+.lib-item-actions button.danger:hover{background:rgba(255,85,119,0.15);border-color:var(--err);color:var(--err)}
 
 /* === Drop overlay (drag & drop) === */
 .drop-overlay{
@@ -1048,13 +1205,99 @@ body.has-tools .empty-hint{display:none}
 <div class="empty-hint" id="emptyHint">
   <div class="empty-icon">🌌</div>
   <div class="empty-title">Il tuo sistema è vuoto</div>
-  <div class="empty-sub">Trascina qui un file <code>.html</code> oppure clicca <strong>➕</strong> — poi trascina i pianeti dove vuoi per creare il tuo flusso</div>
+  <div class="empty-sub">Clicca <strong>➕</strong> in basso a destra → scegli <strong>Aggiungi da URL GitHub</strong> (consigliato) oppure trascina un file <code>.html</code></div>
 </div>
 
-<button class="add-fab" id="addFab" title="Aggiungi uno strumento (trascina un file o clicca qui)">
+<button class="add-fab" id="addFab" title="Aggiungi uno strumento">
   <span>➕</span>
 </button>
+<button class="library-fab" id="libraryFab" title="Libreria — vedi tutti i salvataggi">
+  <span>📚</span>
+</button>
 <input type="file" id="globalFileInput" accept=".html,.htm" style="display:none" multiple>
+
+<!-- FAB menu (appears when clicking +) -->
+<div class="fab-menu" id="fabMenu">
+  <button class="fab-menu-item" id="fabMenuFile">
+    <span class="fab-mn-ic">📁</span>
+    <div class="fab-mn-body">
+      <strong>Carica file HTML</strong>
+      <span class="fab-mn-sub">Drag & drop o seleziona dal disco</span>
+    </div>
+  </button>
+  <button class="fab-menu-item" id="fabMenuUrl">
+    <span class="fab-mn-ic">🌐</span>
+    <div class="fab-mn-body">
+      <strong>Aggiungi da URL GitHub</strong>
+      <span class="fab-mn-sub">Consigliato — i dati persistono sempre</span>
+    </div>
+  </button>
+</div>
+
+<!-- Add-by-URL modal -->
+<div class="modal" id="urlModal">
+  <div class="modal-panel" style="max-width:560px">
+    <button class="modal-close" id="urlClose">×</button>
+    <h2>🌐 Aggiungi tool da URL</h2>
+    <div class="modal-sub">
+      Incolla l'URL pubblico del tool su GitHub Pages. Aprendolo dallo stesso dominio di AR Nova, le chiavi e i salvataggi <strong style="color:var(--text)">persistono per sempre</strong> (niente più blob, niente più sync).
+    </div>
+
+    <div class="modal-group">
+      <label class="req">URL del tool</label>
+      <input type="text" id="urlInput" placeholder="https://romagnuoloantonio85-cyber.github.io/ar-nova/tools/mio-tool.html" autocomplete="off">
+      <div class="hint" style="margin-top:6px">
+        Esempio: carichi <code style="color:var(--accent2)">tools/product-page-builder.html</code> nel tuo repo, l'URL diventa<br>
+        <code style="color:var(--accent2);font-size:0.7rem">https://&lt;tuonome&gt;.github.io/ar-nova/tools/product-page-builder.html</code>
+      </div>
+    </div>
+
+    <div class="modal-group">
+      <div class="row-2">
+        <div>
+          <label class="req">Nome dello strumento</label>
+          <input type="text" id="urlNameInput" placeholder="es. Product Page Builder" autocomplete="off">
+        </div>
+        <div>
+          <label>Emoji</label>
+          <input type="text" id="urlEmojiInput" placeholder="🚀" maxlength="4">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="modal-actions-group"></div>
+      <div class="modal-actions-group">
+        <button class="btn" id="urlCancel">Annulla</button>
+        <button class="btn primary" id="urlConfirm">🚀 Metti in orbita</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Library modal: shows ALL saves from all tools -->
+<div class="modal" id="libraryModal">
+  <div class="modal-panel" style="max-width:840px">
+    <button class="modal-close" id="libraryClose">×</button>
+    <h2>📚 Libreria — tutti i tuoi salvataggi</h2>
+    <div class="modal-sub">
+      Tutto quello che hai salvato dentro i vari tool. Funziona se i tool e AR Nova vivono <strong style="color:var(--text)">sullo stesso dominio</strong> (GitHub Pages).
+    </div>
+
+    <div class="lib-toolbar">
+      <input type="text" id="librarySearch" placeholder="🔍 Cerca per nome…">
+      <select id="libraryFilter">
+        <option value="">Tutti i tool</option>
+      </select>
+      <button class="btn" id="libraryRefresh" title="Aggiorna">🔄</button>
+      <button class="btn" id="libraryExportAll" title="Esporta tutto">📤 Export</button>
+    </div>
+
+    <div id="libraryContent" class="lib-content">
+      <div class="lib-empty">Caricamento…</div>
+    </div>
+  </div>
+</div>
 
 <div class="drop-overlay" id="dropOverlay">
   <div class="drop-panel">
@@ -1798,6 +2041,12 @@ function launchTool(tool){
   showToast('🚀 Apro ' + tool.name, 'ok');
   renderStats();
   setTimeout(() => {
+    // URL-based tool: just open the URL. Same domain = shared localStorage,
+    // so everything (settings, library) is automatically persistent.
+    if(tool.url){
+      window.open(tool.url, '_blank');
+      return;
+    }
     if(tool.dataUrl){
       try{
         const dataUrl = tool.dataUrl;
@@ -2714,10 +2963,29 @@ function openDiagnostic(tool){
 }
 
 /* ============ FLOATING ADD BUTTON ============ */
-// Click FAB → open system file picker directly (no modal)
-document.getElementById('addFab').addEventListener('click', () => {
+const fabMenu = document.getElementById('fabMenu');
+function showFabMenu(){ fabMenu.classList.add('show'); }
+function hideFabMenu(){ fabMenu.classList.remove('show'); }
+
+document.getElementById('addFab').addEventListener('click', e => {
+  e.stopPropagation();
+  if(fabMenu.classList.contains('show')){ hideFabMenu(); }
+  else { showFabMenu(); }
+});
+document.addEventListener('click', e => {
+  if(!fabMenu.contains(e.target) && e.target.id !== 'addFab') hideFabMenu();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape') hideFabMenu(); });
+
+document.getElementById('fabMenuFile').addEventListener('click', () => {
+  hideFabMenu();
   document.getElementById('globalFileInput').click();
 });
+document.getElementById('fabMenuUrl').addEventListener('click', () => {
+  hideFabMenu();
+  openUrlModal();
+});
+
 document.getElementById('globalFileInput').addEventListener('change', async e => {
   const files = Array.from(e.target.files || []);
   e.target.value = ''; // allow re-selecting the same file
@@ -2729,6 +2997,407 @@ document.getElementById('globalFileInput').addEventListener('change', async e =>
     await uploadAndSaveInstantly(f);
   }
 });
+
+/* ============ ADD BY URL ============ */
+const urlModal = document.getElementById('urlModal');
+function openUrlModal(){
+  document.getElementById('urlInput').value = '';
+  document.getElementById('urlNameInput').value = '';
+  document.getElementById('urlEmojiInput').value = '🚀';
+  urlModal.classList.add('show');
+  setTimeout(() => document.getElementById('urlInput').focus(), 100);
+}
+document.getElementById('urlClose').addEventListener('click', () => urlModal.classList.remove('show'));
+document.getElementById('urlCancel').addEventListener('click', () => urlModal.classList.remove('show'));
+urlModal.addEventListener('click', e => { if(e.target.id === 'urlModal') urlModal.classList.remove('show') });
+
+// When user pastes a URL, try to auto-suggest a name from the filename in the path
+document.getElementById('urlInput').addEventListener('input', () => {
+  const url = document.getElementById('urlInput').value.trim();
+  const nameEl = document.getElementById('urlNameInput');
+  if(!nameEl.value && url){
+    try{
+      const u = new URL(url);
+      const parts = u.pathname.split('/').filter(Boolean);
+      const last = parts[parts.length - 1] || '';
+      const stem = last.replace(/\.html?$/i, '').replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
+      if(stem) nameEl.placeholder = 'es. ' + stem + ' (premi qui per usarlo)';
+      nameEl.dataset.suggestion = stem;
+    } catch(e){ /* invalid URL, ignore */ }
+  }
+});
+document.getElementById('urlNameInput').addEventListener('focus', e => {
+  if(!e.target.value && e.target.dataset.suggestion){
+    e.target.value = e.target.dataset.suggestion;
+  }
+});
+
+document.getElementById('urlConfirm').addEventListener('click', () => {
+  const url = document.getElementById('urlInput').value.trim();
+  const name = document.getElementById('urlNameInput').value.trim();
+  const emoji = document.getElementById('urlEmojiInput').value.trim() || '🚀';
+  if(!url){ showToast('✗ Incolla l\'URL del tool', 'err'); return; }
+  if(!/^https?:\/\//i.test(url)){ showToast('✗ L\'URL deve iniziare con http(s)://', 'err'); return; }
+  if(!name){ showToast('✗ Inserisci il nome dello strumento', 'err'); return; }
+
+  const existing = loadCustomTools();
+  // Dedup by URL
+  const dup = existing.find(t => t.url === url);
+  if(dup){
+    if(!confirm('Un pianeta con questo URL esiste già:\n  ' + dup.name + '\n\nSostituirlo?')){
+      return;
+    }
+    const updatedList = existing.map(t => t.id === dup.id ? {...t, name, emoji, url, updatedAt: new Date().toISOString()} : t);
+    saveCustomTools(updatedList);
+    showToast('🔄 "' + name + '" aggiornato', 'ok');
+  } else {
+    const slotIdx = existing.length % NEW_TOOL_SLOTS.length;
+    const slot = NEW_TOOL_SLOTS[slotIdx];
+    const theme = THEME_POOL[existing.length % THEME_POOL.length];
+    const newTool = {
+      id: 'custom_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+      name, emoji, theme,
+      desc: '',
+      settings: {},
+      source: 'custom',
+      url: url,                         // URL-based tool (no dataUrl)
+      file: url.split('/').pop() || '', // for display
+      orbit: slot.orbit, angle: slot.angle, duration: slot.duration,
+      createdAt: new Date().toISOString()
+    };
+    saveCustomTools([...existing, newTool]);
+    showToast('🚀 "' + name + '" in orbita (URL)', 'ok');
+  }
+  urlModal.classList.remove('show');
+  renderSatellites();
+  renderStats();
+});
+
+/* ============ LIBRARY ============ */
+const libraryModal = document.getElementById('libraryModal');
+document.getElementById('libraryFab').addEventListener('click', () => openLibrary());
+document.getElementById('libraryClose').addEventListener('click', () => libraryModal.classList.remove('show'));
+libraryModal.addEventListener('click', e => { if(e.target.id === 'libraryModal') libraryModal.classList.remove('show') });
+document.getElementById('libraryRefresh').addEventListener('click', () => renderLibrary());
+document.getElementById('librarySearch').addEventListener('input', () => renderLibrary());
+document.getElementById('libraryFilter').addEventListener('change', () => renderLibrary());
+
+document.getElementById('libraryExportAll').addEventListener('click', () => {
+  const items = collectLibraryItems();
+  const blob = new Blob([JSON.stringify(items, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'ar_library_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📤 Libreria esportata (' + items.length + ' elementi)', 'ok');
+});
+
+/* Library knows how to interpret saves from each tool.
+   Each entry: { match: regex on the localStorage key, tool: human label, parse: fn(rawValue)->[{name,key,raw}] } */
+/* ============ LIBRARY: universal scanner ============
+   Reads all localStorage keys and tries to interpret them as collections of saves.
+   Layer 1: specific rules for known tools.
+   Layer 2: heuristic detection for any other tool.
+   Layer 3: fallback ignores plain configs/tokens. */
+
+const SPECIFIC_RULES = [
+  {
+    match: /^productPageBuilder_library/i,
+    tool: 'Product Page Builder',
+    icon: '🛍',
+    parse: (raw, key) => {
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+      return Object.entries(obj).map(([name, data]) => ({
+        name, data,
+        removeStrategy: { type: 'objectKey', parentKey: key, prop: name }
+      }));
+    }
+  },
+  {
+    match: /^pr_saved$/,
+    tool: 'Product Radar',
+    icon: '🎯',
+    parse: (raw, key) => {
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return [];
+      return arr.map((p, idx) => ({
+        name: p.name || p.title || p.product_name || ('Prodotto #' + (idx+1)),
+        data: p,
+        removeStrategy: { type: 'arrayIndex', parentKey: key, index: idx }
+      }));
+    }
+  },
+  {
+    match: /^pr_tests$/,
+    tool: 'Product Radar',
+    icon: '🧪',
+    parse: (raw, key) => {
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return [];
+      return arr.map((t, idx) => ({
+        name: t.name || t.title || t.test_name || ('Test #' + (idx+1)),
+        data: t,
+        removeStrategy: { type: 'arrayIndex', parentKey: key, index: idx }
+      }));
+    }
+  },
+  {
+    match: /^r_campaigns$/,
+    tool: 'Product Radar',
+    icon: '📢',
+    parse: (raw, key) => {
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+      return Object.entries(obj).map(([name, data]) => ({
+        name, data,
+        removeStrategy: { type: 'objectKey', parentKey: key, prop: name }
+      }));
+    }
+  },
+  {
+    match: /^ar_spy_sessions$/,
+    tool: 'Product Radar',
+    icon: '🕵',
+    parse: (raw, key) => {
+      const obj = JSON.parse(raw);
+      if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return [];
+      return Object.entries(obj).map(([name, data]) => ({
+        name, data,
+        removeStrategy: { type: 'objectKey', parentKey: key, prop: name }
+      }));
+    }
+  },
+  {
+    match: /^ar_lib:[^:]+:.+/i,
+    tool: null,
+    icon: '📄',
+    parse: (raw, key) => {
+      const parts = key.split(':');
+      const toolName = parts[1] || 'tool';
+      const itemName = parts.slice(2).join(':') || 'untitled';
+      let data = raw;
+      try{ data = JSON.parse(raw); } catch(e){}
+      return [{ name: itemName, data, _toolOverride: toolName,
+        removeStrategy: { type: 'wholeKey', key }
+      }];
+    }
+  }
+];
+
+function heuristicParse(raw, key){
+  if(!raw || raw.length < 8) return null;
+  let parsed;
+  try{ parsed = JSON.parse(raw); }
+  catch(e){ return null; }
+
+  if(Array.isArray(parsed)){
+    if(parsed.length === 0) return null;
+    const sample = parsed[0];
+    if(typeof sample !== 'object' || sample === null) return null;
+    const hasIdentifier = parsed.some(p => p && typeof p === 'object' &&
+      (p.name || p.title || p.id || p.label || p.product_name || p.test_name));
+    if(!hasIdentifier) return null;
+    return parsed.map((p, idx) => ({
+      name: (p && (p.name || p.title || p.label || p.product_name || p.test_name || p.id)) || ('#' + (idx+1)),
+      data: p,
+      removeStrategy: { type: 'arrayIndex', parentKey: key, index: idx }
+    }));
+  }
+
+  if(parsed && typeof parsed === 'object'){
+    const entries = Object.entries(parsed);
+    if(entries.length === 0) return null;
+    const allPrimitive = entries.every(([_, v]) =>
+      typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v === null);
+    if(allPrimitive) return null;
+    return entries.map(([name, data]) => ({
+      name, data,
+      removeStrategy: { type: 'objectKey', parentKey: key, prop: name }
+    }));
+  }
+
+  return null;
+}
+
+const LIB_RESERVED = new Set([
+  'ar_custom_tools', 'ar_log', 'ar_userInitials', 'ar_customMotto',
+  'ar_global_settings', 'ar_helpHidden'
+]);
+
+function guessToolFromKey(key){
+  if(/^pr_/i.test(key)) return 'Product Radar';
+  if(/^r_/i.test(key)) return 'Product Radar';
+  if(/^productPageBuilder/i.test(key)) return 'Product Page Builder';
+  if(/^advoice/i.test(key)) return 'AdVoice';
+  if(/^ar_spy_/i.test(key)) return 'Product Radar';
+  const m = key.match(/^([a-zA-Z]+)[_:.-]/);
+  if(m) return m[1].charAt(0).toUpperCase() + m[1].slice(1);
+  return 'Sconosciuto';
+}
+
+function collectLibraryItems(){
+  const items = [];
+
+  for(let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+    if(!key) continue;
+    if(LIB_RESERVED.has(key)) continue;
+    if(key.startsWith('ar_skipImportPrompt_')) continue;
+
+    const raw = localStorage.getItem(key);
+    if(!raw) continue;
+
+    let matched = false;
+    for(const rule of SPECIFIC_RULES){
+      if(!rule.match.test(key)) continue;
+      try{
+        const parsed = rule.parse(raw, key);
+        if(parsed && parsed.length > 0){
+          parsed.forEach(p => items.push({
+            key,
+            name: p.name,
+            tool: p._toolOverride || rule.tool || guessToolFromKey(key),
+            icon: rule.icon,
+            raw: typeof p.data === 'string' ? p.data : JSON.stringify(p.data, null, 2),
+            removeStrategy: p.removeStrategy
+          }));
+          matched = true;
+          break;
+        }
+      } catch(e){ /* try next rule */ }
+    }
+    if(matched) continue;
+
+    const heuristic = heuristicParse(raw, key);
+    if(heuristic && heuristic.length > 0){
+      heuristic.forEach(p => items.push({
+        key,
+        name: p.name,
+        tool: guessToolFromKey(key),
+        icon: '📄',
+        raw: typeof p.data === 'string' ? p.data : JSON.stringify(p.data, null, 2),
+        removeStrategy: p.removeStrategy
+      }));
+    }
+  }
+
+  return items;
+}
+
+function openLibrary(){
+  // Populate the tool filter from current items
+  const items = collectLibraryItems();
+  const tools = [...new Set(items.map(i => i.tool))].sort();
+  const sel = document.getElementById('libraryFilter');
+  sel.innerHTML = '<option value="">Tutti i tool (' + items.length + ')</option>' +
+    tools.map(t => {
+      const count = items.filter(i => i.tool === t).length;
+      return '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + ' (' + count + ')</option>';
+    }).join('');
+  document.getElementById('librarySearch').value = '';
+  libraryModal.classList.add('show');
+  renderLibrary();
+}
+
+function renderLibrary(){
+  const host = document.getElementById('libraryContent');
+  const items = collectLibraryItems();
+  const search = document.getElementById('librarySearch').value.trim().toLowerCase();
+  const filter = document.getElementById('libraryFilter').value;
+
+  let filtered = items;
+  if(filter) filtered = filtered.filter(i => i.tool === filter);
+  if(search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search) || i.tool.toLowerCase().includes(search));
+
+  if(items.length === 0){
+    host.innerHTML = '<div class="lib-empty">📭 Nessun salvataggio trovato.<br><br>Apri un tool, salva qualcosa, torna qui.<br>I tool devono vivere sullo stesso dominio di AR Nova (GitHub Pages) per essere visti.</div>';
+    return;
+  }
+  if(filtered.length === 0){
+    host.innerHTML = '<div class="lib-empty">Nessun risultato per la ricerca.</div>';
+    return;
+  }
+
+  host.innerHTML = filtered.map((it, idx) => {
+    const sizeKb = (it.raw.length / 1024).toFixed(1);
+    return `
+      <div class="lib-item" data-idx="${idx}">
+        <div class="lib-item-icon">${it.icon}</div>
+        <div class="lib-item-body">
+          <div class="lib-item-name">${escapeHtml(it.name)}</div>
+          <div class="lib-item-meta">
+            <span class="li-tool">${escapeHtml(it.tool)}</span> · ${sizeKb} KB · key: ${escapeHtml(it.key)}
+          </div>
+        </div>
+        <div class="lib-item-actions">
+          <button title="Esporta" data-act="export" data-idx="${idx}">📤</button>
+          <button title="Copia JSON" data-act="copy" data-idx="${idx}">📋</button>
+          <button class="danger" title="Elimina" data-act="del" data-idx="${idx}">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Wire up action buttons
+  host.querySelectorAll('.lib-item-actions button').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(b.dataset.idx, 10);
+      const it = filtered[idx];
+      if(!it) return;
+      const act = b.dataset.act;
+      if(act === 'export'){
+        const blob = new Blob([it.raw], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = (it.tool + '_' + it.name).replace(/[^a-z0-9]+/gi, '_') + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else if(act === 'copy'){
+        navigator.clipboard.writeText(it.raw).then(() => showToast('📋 Copiato', 'ok'));
+      } else if(act === 'del'){
+        if(!confirm('Eliminare "' + it.name + '" da ' + it.tool + '?\n\nL\'elemento verrà rimosso dal localStorage.')) return;
+        // Removing requires updating the parent key (e.g. removing one item from the library object)
+        deleteLibraryItem(it);
+        renderLibrary();
+        showToast('🗑 Eliminato', 'ok');
+      }
+    });
+  });
+}
+
+function deleteLibraryItem(it){
+  // Use the removeStrategy that was attached when the item was discovered
+  const rs = it.removeStrategy;
+  if(!rs){ return; }
+  try{
+    if(rs.type === 'wholeKey'){
+      localStorage.removeItem(rs.key);
+    } else if(rs.type === 'objectKey'){
+      const obj = JSON.parse(localStorage.getItem(rs.parentKey) || '{}');
+      delete obj[rs.prop];
+      if(Object.keys(obj).length === 0){
+        localStorage.removeItem(rs.parentKey);
+      } else {
+        localStorage.setItem(rs.parentKey, JSON.stringify(obj));
+      }
+    } else if(rs.type === 'arrayIndex'){
+      const arr = JSON.parse(localStorage.getItem(rs.parentKey) || '[]');
+      if(Array.isArray(arr) && rs.index >= 0 && rs.index < arr.length){
+        arr.splice(rs.index, 1);
+        if(arr.length === 0){
+          localStorage.removeItem(rs.parentKey);
+        } else {
+          localStorage.setItem(rs.parentKey, JSON.stringify(arr));
+        }
+      }
+    }
+  } catch(e){
+    console.warn('[AR Nova] deleteLibraryItem failed:', e);
+  }
+}
 
 /* ============ DRAG & DROP + UPLOAD PROGRESS ============ */
 const dropOverlay = document.getElementById('dropOverlay');
@@ -2766,6 +3435,16 @@ document.addEventListener('drop', async e => {
   e.preventDefault();
   dragCounter = 0;
   dropOverlay.classList.remove('show');
+
+  // If a URL was dropped (drag from address bar or another tab), open the URL modal
+  const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+  if(url && /^https?:\/\//i.test(url.trim())){
+    openUrlModal();
+    document.getElementById('urlInput').value = url.trim();
+    document.getElementById('urlInput').dispatchEvent(new Event('input'));
+    return;
+  }
+
   const files = Array.from(e.dataTransfer.files || []);
   if(files.length === 0) return;
   for(const f of files){
