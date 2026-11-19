@@ -4,11 +4,11 @@ const CAMPI_COL = [["cliente", "Cliente"], ["linea", "Linea"], ["commessa", "Com
 
 async function avvio() {
   stile();
-  app.innerHTML = `<p class="mu">Caricamento…</p>`;
+  app.innerHTML = caricamento("Caricamento…");
   const u = await mioUtente();
-  if (!u) return schermataAccesso("Checklist Quadri FR · Admin", "Accesso riservato all'amministratore", avvio);
+  if (!u) return schermataAccesso("Accesso amministratore", "Checklist quadri — Amministrazione", avvio);
   if (u.nonAutorizzato || u.ruolo !== "admin") {
-    app.innerHTML = `<h1>Admin</h1><div class="msg">L'email ${esc(u.email || "")} non è amministratore.</div><p><button id="bx">Esci</button></p>`;
+    app.innerHTML = `${testa("Checklist quadri — Amministrazione")}<div class="msg">L'email ${esc(u.email || "")} non è amministratore.</div><p><button id="bx">Esci</button></p>`;
     $("#bx").onclick = esci; return;
   }
   A.oggi = (await oraServer()).oggi;
@@ -23,11 +23,29 @@ const nomeCab = (id) => A.cab.find((c) => c.id === id)?.nome || "";
 
 const TABS = [["checklist", "Checklist"], ["collaudi", "Prossimi al collaudo"], ["avvisi", "Avvisi"], ["voci", "Voci"], ["cablatori", "Cablatori e accessi"], ["ruoli", "Ruoli"], ["impostazioni", "Impostazioni"]];
 async function disegna() {
-  const { count } = await sb.from("avvisi").select("id", { count: "exact", head: true }).is("risolto_il", null);
-  app.innerHTML = `<h1>Checklist Quadri FR · Admin</h1><p class="mu">Oggi ${fmtData(A.oggi)} · versione pagina ${esc(C.versione || "")}</p>
-  ${count ? `<div class="msg"><b>${count} ${count === 1 ? "avviso aperto" : "avvisi aperti"}</b> · <button class="picc" data-tab="avvisi">Vedi</button></div>` : ""}
-  <nav class="tabs">${TABS.map(([k, t]) => `<button data-tab="${k}" aria-current="${A.tab === k}">${t}${k === "avvisi" && count ? ` (${count})` : ""}</button>`).join("")}<button id="bx">Esci</button></nav>
-  <div id="corpo"><p class="mu">Caricamento…</p></div>`;
+  app.classList.add("largo");
+  const { data: imp } = await sb.from("impostazioni").select("valore").eq("chiave", "giorni_anticipo").maybeSingle();
+  const giorni = Number(imp?.valore ?? 14), limite = aggiungiGiorni(A.oggi, giorni), sett = aggiungiGiorni(A.oggi, -7);
+  const [av, inc, inv, qd, ls] = await Promise.all([
+    sb.from("avvisi").select("id", { count: "exact", head: true }).is("risolto_il", null),
+    sb.from("checklist").select("id", { count: "exact", head: true }).eq("stato", "in_corso"),
+    sb.from("checklist").select("id", { count: "exact", head: true }).eq("stato", "inviata").gte("inviata_il", sett + "T00:00:00Z"),
+    tutte(() => sb.from("quadri").select("id, data_collaudo, data_valida").eq("attivo", true).lte("data_collaudo", limite)),
+    tutte(() => sb.from("checklist").select("id, quadro_id, stato").neq("stato", "annullata")),
+  ]);
+  const count = av.count || 0;
+  const pr = prossimi(qd, ls, A.oggi, giorni);
+  const ritardo = pr.filter((p) => p.ritardo).length, futuri = pr.filter((p) => !p.ritardo && !p.nonValida).length;
+  app.innerHTML = `${testa("Checklist quadri — Amministrazione", A.oggi)}
+  <div class="kpi">
+    <div><b>${inc.count || 0}</b><span>Checklist in corso</span></div>
+    <div><b>${inv.count || 0}</b><span>Inviate negli ultimi 7 giorni</span></div>
+    <div><b>${futuri}</b><span>Collaudi nei prossimi ${giorni} giorni</span></div>
+    <div><b>${ritardo}</b><span>In ritardo</span></div>
+    <div><b>${count}</b><span>Avvisi aperti</span></div>
+  </div>
+  <nav class="tabs">${TABS.map(([k, t]) => `<button data-tab="${k}" aria-current="${A.tab === k}">${t}${k === "avvisi" && count ? ` (${count})` : ""}</button>`).join("")}<button class="grigio" id="bx">Esci</button></nav>
+  <div id="corpo">${caricamento("Caricamento…")}</div>${piede()}`;
   $$("[data-tab]").forEach((b) => (b.onclick = () => { A.tab = b.dataset.tab; disegna(); }));
   $("#bx").onclick = esci;
   const f = { checklist: tabChecklist, collaudi: tabCollaudi, avvisi: tabAvvisi, voci: tabVoci, cablatori: tabCablatori, ruoli: tabRuoli, impostazioni: tabImpostazioni }[A.tab];
@@ -125,7 +143,7 @@ async function tabCollaudi(el) {
   const liste = await tutte(() => sb.from("checklist").select("id, quadro_id, stato").neq("stato", "annullata"));
   el.innerHTML = A.cab.map((c) => {
     const pr = prossimi(quadri.filter((q) => q.cablatore_id === c.id), liste, A.oggi, giorni);
-    return `<div class="card"><h2>${esc(c.nome)} · prossimi ${giorni} giorni</h2>${pr.length ? `<ul>${pr.map((p) => rigaProssimo(p, p.q.linea ? ` · Linea ${esc(p.q.linea)}` : "")).join("")}</ul>` : `<p class="mu">Nessun quadro.</p>`}</div>`;
+    return `<div class="card"><h2>🗓 ${esc(c.nome)} · prossimi ${giorni} giorni</h2>${pr.length ? `<div class="blocco">${pr.map((p) => rigaProssimo(p, p.q.linea ? `<span class="mu">Linea ${esc(p.q.linea)}</span>` : "")).join("")}</div>` : `<p class="mu">Nessun quadro.</p>`}</div>`;
   }).join("") || `<p class="mu">Nessun cablatore.</p>`;
 }
 
