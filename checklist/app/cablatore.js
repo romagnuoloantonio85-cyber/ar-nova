@@ -236,7 +236,7 @@ function cosaManca() {
   const voci = S.gruppi.flatMap((g) => g.voci);
   if (!voci.length) m.push("La checklist non ha voci");
   const senza = voci.filter((v) => !["ok", "na"].includes(BOZZA.risposte[v.id]));
-  if (senza.length) m.push(`Mancano ${senza.length} voci da segnare (OK o Non applicabile)`);
+  if (senza.length) m.push(senza.length === 1 ? "Manca 1 voce da segnare (OK o Non applicabile)" : `Mancano ${senza.length} voci da segnare (OK o Non applicabile)`);
   if (!BOZZA.compilato_da.trim()) m.push('Scrivi "Compilato da"');
   if (!FOTO.some((f) => f.tipo === "interna")) m.push("Aggiungi almeno una foto interna");
   if (!FOTO.some((f) => f.tipo === "esterna")) m.push("Aggiungi almeno una foto esterna");

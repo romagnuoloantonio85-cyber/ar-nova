@@ -353,7 +353,7 @@ Deno.serve(async (req) => {
       if (!tutte.length) errori.push("La checklist non ha ancora voci: avvisa l'amministratore");
       const risp = ch.risposte || {};
       const senza = tutte.filter((v: any) => !["ok", "na"].includes(risp[v.id]));
-      if (senza.length) errori.push(`Mancano ${senza.length} voci da segnare`);
+      if (senza.length) errori.push(senza.length === 1 ? "Manca 1 voce da segnare" : `Mancano ${senza.length} voci da segnare`);
       const { data: foto } = await db.from("foto").select("tipo").eq("checklist_id", ch.id);
       if (!(foto || []).some((f: any) => f.tipo === "interna")) errori.push("Serve almeno una foto interna");
       if (!(foto || []).some((f: any) => f.tipo === "esterna")) errori.push("Serve almeno una foto esterna");
