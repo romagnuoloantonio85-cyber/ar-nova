@@ -22,6 +22,9 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--text);
 .et small{display:block;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
 .et.sel{color:#fff;font-weight:700}
 .et.off{opacity:.25}
+.et{pointer-events:auto;cursor:pointer}
+.et:hover{color:#fff}
+.et.coperta{opacity:0;pointer-events:none}
 
 /* intestazione */
 .top{position:fixed;left:28px;top:22px;pointer-events:none}
@@ -164,7 +167,9 @@ const GRUPPI = {
   ads:  { nome:'Campagne e vendite',  col:'#ffb547' },
   fr:   { nome:'FR Group',            col:'#6ee7ff' },
   casa: { nome:'Casa',                col:'#3ddc97' },
-  org:  { nome:'Organizzazione',      col:'#ff8fb1' }
+  org:  { nome:'Organizzazione',      col:'#ff8fb1' },
+  strum:{ nome:'Strumenti',           col:'#7aa2ff' },
+  doc:  { nome:'Documenti',           col:'#f4ecd0' }
 };
 const BASE = [
   { id:'arvis',   nome:'ARVIS',               ico:'🔷', gr:'org',  tipo:'ghiaccio', url:'https://claude.ai/artifact/Wo3sT3xqJfoqAZabuqNWsN', desc:'Il tuo assistente personale con il cervellone su Supabase e la voce ElevenLabs.' },
@@ -172,18 +177,38 @@ const BASE = [
   { id:'bilancio',nome:'Bilancio Sistemi',    ico:'📊', gr:'org',  tipo:'roccia',   url:'https://claude.ai/artifact/5iuNFZchnjj8DjEfbyPsnN', desc:'Il riepilogo dei costi e dei sistemi che usi.' },
   { id:'argo',    nome:'ARGO',                ico:'⛵', gr:'mkt',  tipo:'gas',      url:'https://claude.ai/artifact/Tk1s6H8shV1gJ3oMbBaYd6', desc:'Video realistici dai tuoi prodotti, su lavagna a nodi.' },
   { id:'radar',   nome:'AR Product Radar',    ico:'📡', gr:'mkt',  tipo:'marte',    url:'https://claude.ai/artifact/VQebtyewnVCLF5ZoGxNiLN', desc:'Ricerca prodotti dropshipping: inserzioni Meta, profili TikTok e prodotti salvati.' },
-  { id:'ferie',   nome:'Ferie e Permessi',    ico:'🏖️', gr:'mkt',  tipo:'gas',      url:'',                                                  desc:'Gestione ferie e permessi da vendere alle aziende. Aggiungi il link con "Modifica".' },
+  { id:'ferie',   nome:'Richiesta Ferie e Permessi', ico:'🏖️', gr:'mkt', tipo:'gas', url:'https://app.ardigitalmarketer.it', desc:'Gestione ferie e permessi da vendere alle aziende.' },
   { id:'tifi',    nome:'TIFI · Cruscotto',    ico:'⚓', gr:'ads',  tipo:'lava',     url:'https://claude.ai/artifact/CU6bmxPp9djWMtavaMcb21', desc:'Il timoniere delle campagne TikTok di VisionClear Pro su satech.tech.' },
   { id:'vendite', nome:'Cruscotto Vendite e Ads', ico:'💶', gr:'ads', tipo:'terra', url:'https://claude.ai/artifact/4F8xFGwvpdobk6XEtG5VkP', desc:'Ordini Shopify e campagne Meta Ads letti dai connettori, con le soglie operative.' },
   { id:'cantieri',nome:'Lavagna Cantieri',    ico:'🛥️', gr:'fr',   tipo:'ghiaccio', url:'https://claude.ai/artifact/MtAVpcMRbuV1GcmD9xC2PZ', desc:'Ore e persone previste nei prossimi 12 mesi per cantiere.' },
-  { id:'check',   nome:'Checklist Quadri',    ico:'✅', gr:'fr',   tipo:'roccia',   url:'https://claude.ai/artifact/Hoqd9bqv35URndLUF7dwqF', desc:'Note & Test Report dei quadri elettrici per i cablatori (anteprima Mannarini).' },
-  { id:'magaz',   nome:'Uscita Magazzino',    ico:'📦', gr:'fr',   tipo:'marte',    url:'https://claude.ai/artifact/Eid259DoaSaGwapXMqpWep', desc:'Registrazione del materiale in uscita sul foglio Bill of Materials.' },
-  { id:'home',    nome:'AR Home Control',     ico:'🏠', gr:'casa', tipo:'terra',    url:'https://claude.ai/artifact/DadAd2wwKDsC2ThXiFvvvW', desc:'Consumi e comandi di casa: elettrodomestici, fotovoltaico Huawei, Yokis.' }
+  { id:'check',   nome:'Checklist Quadri',    ico:'✅', gr:'fr',   tipo:'roccia',   url:'', desc:'Note & Test Report dei quadri elettrici per i cablatori. Il sistema è su n8n: aggiungi il link con "Modifica".' },
+  { id:'magaz',   nome:'Uscita Magazzino',    ico:'📦', gr:'fr',   tipo:'marte',    url:'', desc:'Registrazione del materiale in uscita sul foglio Bill of Materials. Il sistema è su n8n: aggiungi il link con "Modifica".' },
+  { id:'home',    nome:'AR Home Control',     ico:'🏠', gr:'casa', tipo:'terra',    url:'https://claude.ai/artifact/DadAd2wwKDsC2ThXiFvvvW', desc:'Consumi e comandi di casa: elettrodomestici, fotovoltaico Huawei, Yokis.' },
+  // novità v3
+  { id:'argostudio', nome:'ARGO Studio',      ico:'🎬', gr:'mkt',  tipo:'ghiaccio', url:'https://app.ardigitalmarketer.it/argo/', desc:'Lo studio di ARGO sul tuo dominio: video dai prodotti.' },
+  { id:'tifi3',   nome:'TIFI 3',              ico:'🧭', gr:'ads',  tipo:'roccia',   url:'', desc:'Analisi in sola lettura di campagne Meta, vendite Shopify e redditività. Aggiungi il link con "Modifica".' },
+  { id:'assfr',   nome:'Assistance Report FR', ico:'🛠️', gr:'fr',  tipo:'terra',    url:'https://ardigitalmarketer.app.n8n.cloud/webhook/AssistenzaFR', desc:'Rapporto di assistenza FR Group, compilato tramite n8n.' },
+  { id:'n8n',     nome:'n8n',                 ico:'🔗', gr:'strum',tipo:'lava',     url:'https://ardigitalmarketer.app.n8n.cloud', desc:'Gli automatismi e i flussi di lavoro (workflow).' },
+  { id:'shopify', nome:'Shopify (Satech e Boreca)', ico:'🛒', gr:'strum', tipo:'terra', url:'https://admin.shopify.com', desc:'Pannello di amministrazione dei negozi Satech e Boreca.' },
+  { id:'metaads', nome:'Meta Ads Manager',    ico:'📣', gr:'strum',tipo:'ghiaccio', url:'https://adsmanager.facebook.com', desc:'Gestione delle campagne pubblicitarie su Facebook e Instagram.' },
+  { id:'ttads',   nome:'TikTok Ads Manager',  ico:'🎵', gr:'strum',tipo:'marte',    url:'https://ads.tiktok.com', desc:'Gestione delle campagne pubblicitarie su TikTok.' },
+  { id:'claudecode', nome:'Claude Code',      ico:'🤖', gr:'strum',tipo:'gas',      url:'https://claude.ai/code', desc:'Le sessioni di programmazione con Claude sui tuoi repository.' },
+  { id:'supabase',nome:'Supabase',            ico:'🗄️', gr:'strum',tipo:'roccia',   url:'https://supabase.com/dashboard', desc:'Database e funzioni dietro ARVIS e le altre app.' },
+  { id:'github',  nome:'GitHub',              ico:'🐙', gr:'strum',tipo:'ghiaccio', url:'https://github.com/romagnuoloantonio85-cyber', desc:'I tuoi repository, tra cui AR Nova.' },
+  { id:'bplan',   nome:'Business plan AR Digital Marketer', ico:'📈', gr:'doc', tipo:'terra', url:'https://claude.ai/artifact/Rcm9TUgFEkrHMYhcp3ADnk', desc:'Il business plan di AR Digital Marketer.' },
+  { id:'welfare', nome:'Piano Welfare FR',    ico:'🤝', gr:'doc',  tipo:'gas',      url:'https://claude.ai/artifact/DzaxdGqnwG7wNy5LKSw7gG', desc:'Il piano welfare per FR Group.' },
+  { id:'ttbest',  nome:'TikTok Best Video',   ico:'🏆', gr:'mkt',  tipo:'lava',     url:'https://claude.ai/artifact/Mwo6gjPkcjbPN7CwtAo5He', desc:'Bookmarklet per trovare i video TikTok migliori.' }
 ];
-const CHIAVE = 'arnova-hub-v1';
+const CHIAVE = 'arnova-hub-v3', CHIAVE_V1 = 'arnova-hub-v1';
 let APPS;
 try { APPS = JSON.parse(localStorage.getItem(CHIAVE)) || null; } catch(e) { APPS = null; }
-if (!Array.isArray(APPS)) APPS = BASE.map(a => ({...a}));
+if (!Array.isArray(APPS)) {
+  APPS = BASE.map(a => ({...a}));
+  // dalla v1: tieni le app aggiunte a mano dal browser
+  try { const vecchie = JSON.parse(localStorage.getItem(CHIAVE_V1));
+    if (Array.isArray(vecchie)) vecchie.forEach(a => { if (a && a.id && !BASE.some(b => b.id===a.id)) APPS.push(a); });
+  } catch(e) {}
+}
 function salva(){ try { localStorage.setItem(CHIAVE, JSON.stringify(APPS)); } catch(e){} }
 
 /* ---------- TEXTURE PROCEDURALI ---------- */
@@ -290,6 +315,9 @@ function costruisci(){
     const orbitaLinea=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(GRUPPI[a.gr]?.col||'#8fa3c8'),transparent:true,opacity:.13}));
     scena.add(orbitaLinea);
     const et=document.createElement('div'); et.className='et'; et.innerHTML=`${a.ico||''} ${esc(a.nome)}<small>${esc(GRUPPI[a.gr]?.nome||'')}</small>`; etDiv.appendChild(et);
+    // clic sul nome: apre subito lo strumento; senza link apre il pannello
+    et.title=a.url?"Apri l'app":'Link da aggiungere';
+    et.addEventListener('click',()=>{ if(a.url) apriLink(a.url); else seleziona(a.id); });
     pianeti.push({app:a,r,orbita,angolo:i*2.399+.3,vel:.05/Math.sqrt(i+2),perno,corpo,sel,orbitaLinea,et});
   });
   disegnaLista();
@@ -418,18 +446,30 @@ function anima(t){
   camera.lookAt(vista.bersaglio);
   renderer.render(scena,camera);
   // etichette
-  const w=innerWidth,h=innerHeight, q=cerca.trim().toLowerCase();
+  const w=innerWidth,h=innerHeight, q=cerca.trim().toLowerCase(), visibili=[];
   pianeti.forEach(p=>{
     tmp.copy(p.perno.position); tmp.y-=p.r*1.15; tmp.project(camera);
     const dietro=tmp.z>1; const x=(tmp.x*.5+.5)*w, y=(-tmp.y*.5+.5)*h;
     const fuori=x<zona.x||x>zona.x+zona.w||y>zona.y+zona.h;
     p.et.style.display=dietro||fuori?'none':''; p.et.style.left=x+'px'; p.et.style.top=y+'px';
     p.et.classList.toggle('sel',p.app.id===selezionata);
-    p.et.classList.toggle('off',!!q && !(p.app.nome+' '+p.app.desc).toLowerCase().includes(q));
+    const off=!!q && !(p.app.nome+' '+p.app.desc).toLowerCase().includes(q);
+    p.et.classList.toggle('off',off);
+    if(!dietro&&!fuori) visibili.push({p,x,y,z:tmp.z,pri:p.app.id===selezionata?0:off?2:1});
+  });
+  // nomi leggibili: se due si sovrappongono resta quello selezionato, poi il più vicino
+  visibili.sort((a,b)=>a.pri-b.pri||a.z-b.z);
+  const posati=[];
+  visibili.forEach(v=>{ const e=v.p.et;
+    if(!v.p.lw){ v.p.lw=e.offsetWidth; v.p.lh=e.offsetHeight; }
+    const r={l:v.x-v.p.lw/2-3,t:v.y,r:v.x+v.p.lw/2+3,b:v.y+v.p.lh};
+    const urta=posati.some(o=>r.l<o.r&&r.r>o.l&&r.t<o.b&&r.b>o.t);
+    e.classList.toggle('coperta',urta); if(!urta) posati.push(r);
   });
   requestAnimationFrame(anima);
 }
 costruisci();
+if(document.fonts) document.fonts.ready.then(()=>pianeti.forEach(p=>p.lw=0));
 requestAnimationFrame(t=>{ ultimo=t; anima(t); setTimeout(()=>$('avvio').classList.add('via'),300); });
 })();
 </script>
