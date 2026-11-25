@@ -75,6 +75,23 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--text);
 .piede .mini{flex:1}
 
 /* finestra modifica */
+.et.luna{font-size:10.5px;font-weight:600;color:#bff5e4;padding-top:2px}
+.porte{position:fixed;inset:0;display:none;place-items:center;z-index:25;background:radial-gradient(circle at 50% 45%,rgba(20,40,60,.35),rgba(2,4,10,.72));backdrop-filter:blur(8px)}
+.porte.vis{display:grid}
+.porte-box{width:min(620px,calc(100vw - 28px));text-align:center}
+.porte-tit{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.porte-nome{font-size:28px;font-weight:700;margin:6px 0 22px}
+.porte-riga{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.porta{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;text-decoration:none;color:var(--text);padding:22px 22px 20px;border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));border:1px solid var(--line2);cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;overflow:hidden}
+.porta::before{content:"";position:absolute;inset:-40% -20% auto auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 70%);opacity:.35;transition:opacity .2s}
+.porta:hover,.porta:focus-visible{transform:translateY(-3px);border-color:var(--glow);box-shadow:0 14px 40px -12px var(--glow);outline:none}
+.porta:hover::before{opacity:.6}
+.porta .pi{font-size:34px;line-height:1}
+.porta b{font-size:18px}
+.porta span{font-size:13px;color:var(--muted);line-height:1.45}
+.porta i{font-style:normal;font-size:12px;color:var(--glow);margin-top:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.porte-chiudi{margin-top:18px;font:inherit;font-size:12.5px;color:var(--muted);background:none;border:none;cursor:pointer}
+.apri.luna{background:linear-gradient(90deg,#34d399,#22d3ee);color:#022018}
 .velo{position:fixed;inset:0;background:rgba(2,4,10,.6);backdrop-filter:blur(6px);display:none;place-items:center;z-index:20}
 .velo.vis{display:grid}
 .modale{width:440px;background:#0e1322;border:1px solid var(--line2);border-radius:18px;padding:22px}
@@ -134,6 +151,10 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--text);
   <div class="piede"><button class="mini" id="bNuova">＋ Aggiungi app</button><button class="mini" id="bCopia">Copia elenco</button></div>
 </aside>
 
+<div class="porte" id="porte" role="dialog" aria-modal="true" aria-labelledby="porteNome">
+  <div class="porte-box"><div class="porte-tit">Dove vuoi andare?</div><div class="porte-nome" id="porteNome"></div>
+  <div class="porte-riga" id="porteRiga"></div><button class="porte-chiudi" id="porteChiudi">Esc · resta nell'universo</button></div>
+</div>
 <div class="velo" id="velo">
   <form class="modale" id="form">
     <h3 id="fTit">Aggiungi app</h3>
@@ -177,7 +198,8 @@ const BASE = [
   { id:'bilancio',nome:'Bilancio Sistemi',    ico:'📊', gr:'org',  tipo:'roccia',   url:'https://claude.ai/artifact/5iuNFZchnjj8DjEfbyPsnN', desc:'Il riepilogo dei costi e dei sistemi che usi.' },
   { id:'argo',    nome:'ARGO',                ico:'⛵', gr:'mkt',  tipo:'gas',      url:'https://claude.ai/artifact/Tk1s6H8shV1gJ3oMbBaYd6', desc:'Video realistici dai tuoi prodotti, su lavagna a nodi.' },
   { id:'radar',   nome:'AR Product Radar',    ico:'📡', gr:'mkt',  tipo:'marte',    url:'https://claude.ai/artifact/VQebtyewnVCLF5ZoGxNiLN', desc:'Ricerca prodotti dropshipping: inserzioni Meta, profili TikTok e prodotti salvati.' },
-  { id:'ferie',   nome:'Richiesta Ferie e Permessi', ico:'🏖️', gr:'mkt', tipo:'gas', url:'https://app.ardigitalmarketer.it', desc:'Gestione ferie e permessi da vendere alle aziende.' },
+  { id:'ferie',   nome:'Richiesta Ferie e Permessi', ico:'🏖️', gr:'mkt', tipo:'gas', url:'https://app.ardigitalmarketer.it', desc:'Gestione ferie e permessi da vendere alle aziende.',
+    lune:[{ nome:'Campagna', ico:'📈', url:'https://claude.ai/artifact/WpTgsZQYzQ1ecKobMbBXMC', titolo:'Guarda la campagna', desc:'Spesa, visite e iscrizioni dagli annunci Meta, dal vivo.' }] },
   { id:'tifi',    nome:'TIFI · Cruscotto',    ico:'⚓', gr:'ads',  tipo:'lava',     url:'https://claude.ai/artifact/CU6bmxPp9djWMtavaMcb21', desc:'Il timoniere delle campagne TikTok di VisionClear Pro su satech.tech.' },
   { id:'vendite', nome:'Cruscotto Vendite e Ads', ico:'💶', gr:'ads', tipo:'terra', url:'https://claude.ai/artifact/4F8xFGwvpdobk6XEtG5VkP', desc:'Ordini Shopify e campagne Meta Ads letti dai connettori, con le soglie operative.' },
   { id:'cantieri',nome:'Lavagna Cantieri',    ico:'🛥️', gr:'fr',   tipo:'ghiaccio', url:'https://claude.ai/artifact/MtAVpcMRbuV1GcmD9xC2PZ', desc:'Ore e persone previste nei prossimi 12 mesi per cantiere.' },
@@ -197,12 +219,10 @@ const BASE = [
   { id:'github',  nome:'GitHub',              ico:'🐙', gr:'strum',tipo:'ghiaccio', url:'https://github.com/romagnuoloantonio85-cyber', desc:'I tuoi repository, tra cui AR Nova.' },
   { id:'bplan',   nome:'Business plan AR Digital Marketer', ico:'📈', gr:'doc', tipo:'terra', url:'https://claude.ai/artifact/Rcm9TUgFEkrHMYhcp3ADnk', desc:'Il business plan di AR Digital Marketer.' },
   { id:'welfare', nome:'Piano Welfare FR',    ico:'🤝', gr:'doc',  tipo:'gas',      url:'https://claude.ai/artifact/DzaxdGqnwG7wNy5LKSw7gG', desc:'Il piano welfare per FR Group.' },
-  { id:'ttbest',  nome:'TikTok Best Video',   ico:'🏆', gr:'mkt',  tipo:'lava',     url:'https://claude.ai/artifact/Mwo6gjPkcjbPN7CwtAo5He', desc:'Bookmarklet per trovare i video TikTok migliori.' },
-  // novità v4
-  { id:'campagnaferie', nome:'Campagna Ferie e Permessi', ico:'📈', gr:'ads', tipo:'marte', url:'https://claude.ai/artifact/WpTgsZQYzQ1ecKobMbBXMC', desc:'Come va la campagna Meta di Richiesta Ferie e Permessi: spesa, visite, persone arrivate nell\'app e iscrizioni, dal vivo.' }
+  { id:'ttbest',  nome:'TikTok Best Video',   ico:'🏆', gr:'mkt',  tipo:'lava',     url:'https://claude.ai/artifact/Mwo6gjPkcjbPN7CwtAo5He', desc:'Bookmarklet per trovare i video TikTok migliori.' }
 ];
-// app nuove di ogni versione: compaiono anche a chi ha già la sua lista salvata nel browser (una volta sola)
-const NOVITA = { 'arnova-v4': ['campagnaferie'] };
+// novità di ogni versione per chi ha già la sua lista salvata nel browser (una volta sola)
+const NOVITA = { 'arnova-v4': { lune: ['ferie'] } };
 const CHIAVE = 'arnova-hub-v3', CHIAVE_V1 = 'arnova-hub-v1';
 let APPS;
 try { APPS = JSON.parse(localStorage.getItem(CHIAVE)) || null; } catch(e) { APPS = null; }
@@ -217,7 +237,7 @@ function salva(){ try { localStorage.setItem(CHIAVE, JSON.stringify(APPS)); } ca
 Object.entries(NOVITA).forEach(([chiave, ids]) => {
   let fatto = false; try { fatto = localStorage.getItem(chiave) === '1'; } catch(e) {}
   if (fatto) return;
-  ids.forEach(id => { if (!APPS.some(a => a.id === id)) { const b = BASE.find(x => x.id === id); if (b) APPS.push({...b}); } });
+  (ids.lune || []).forEach(id => { const a = APPS.find(x => x.id === id), b = BASE.find(x => x.id === id); if (a && b && !a.lune) a.lune = b.lune.map(l => ({...l})); });
   salva(); try { localStorage.setItem(chiave, '1'); } catch(e) {}
 });
 
@@ -298,7 +318,7 @@ const alone1=alone('rgba(255,170,70,0.9)',30,.9), alone2=alone('rgba(255,110,74,
 let pianeti=[], cliccabili=[sole];
 const etDiv=$('etichette');
 function costruisci(){
-  pianeti.forEach(p=>{ scena.remove(p.perno); scena.remove(p.orbitaLinea); p.et.remove(); });
+  pianeti.forEach(p=>{ scena.remove(p.perno); scena.remove(p.orbitaLinea); p.et.remove(); (p.lune||[]).forEach(l=>l.et.remove()); });
   pianeti=[]; cliccabili=[sole];
   APPS.forEach((a,i)=>{
     const r=1.1+((i*37)%5)*.22+(a.tipo==='gas'?.5:0);
@@ -327,8 +347,20 @@ function costruisci(){
     const et=document.createElement('div'); et.className='et'; et.innerHTML=`${a.ico||''} ${esc(a.nome)}<small>${esc(GRUPPI[a.gr]?.nome||'')}</small>`; etDiv.appendChild(et);
     // clic sul nome: apre subito lo strumento; senza link apre il pannello
     et.title=a.url?"Apri l'app":'Link da aggiungere';
-    et.addEventListener('click',()=>{ if(a.url) apriLink(a.url); else seleziona(a.id); });
-    pianeti.push({app:a,r,orbita,angolo:i*2.399+.3,vel:.05/Math.sqrt(i+2),perno,corpo,sel,orbitaLinea,et});
+    et.addEventListener('click',()=>entra(a));
+    // lune: piccoli satelliti luminosi che portano a un secondo link (es. la dashboard della campagna)
+    const lune=(a.lune||[]).map((l,k)=>{
+      const lr=Math.max(.32,r*.3), raggio=r*2.6+k*1.2;
+      const m=new THREE.Mesh(new THREE.SphereGeometry(lr,32,24),new THREE.MeshStandardMaterial({color:0xbff5e4,emissive:new THREE.Color(0x10b981),emissiveIntensity:.9,roughness:.4}));
+      m.userData={tipo:'luna',id:a.id,k}; perno.add(m); cliccabili.push(m);
+      const al=alone('rgba(52,211,153,.8)',lr*7,.7); m.add(al);
+      const o=[]; for(let q=0;q<=96;q++){ const t=q/96*Math.PI*2; o.push(new THREE.Vector3(Math.cos(t)*raggio,0,Math.sin(t)*raggio)); }
+      const ol=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(o),new THREE.LineBasicMaterial({color:0x34d399,transparent:true,opacity:.28})); ol.rotation.x=.35; perno.add(ol);
+      const le=document.createElement('div'); le.className='et luna'; le.textContent=`${l.ico||'🌙'} ${l.nome}`; le.title=l.titolo||l.nome; etDiv.appendChild(le);
+      le.addEventListener('click',()=>{ if(l.url) apriLink(l.url); });
+      return {m,et:le,raggio,ang:k*2.1,lr};
+    });
+    pianeti.push({app:a,r,orbita,angolo:i*2.399+.3,vel:.05/Math.sqrt(i+2),perno,corpo,sel,orbitaLinea,et,lune});
   });
   disegnaLista();
 }
@@ -345,12 +377,27 @@ canvas.addEventListener('pointermove',e=>{
     obiettivo.teta-=dx*.005; obiettivo.fi=Math.min(1.5,Math.max(.15,obiettivo.fi-dy*.004)); trascina={x:e.clientX,y:e.clientY}; }
   else { const h=colpito(e); canvas.style.cursor=h?'pointer':'grab'; }
 });
-canvas.addEventListener('pointerup',e=>{ trascina=null; if(!mosso){ const h=colpito(e); if(h) seleziona(h); } });
-canvas.addEventListener('dblclick',e=>{ const h=colpito(e); if(h&&h!=='sole'){ const a=APPS.find(x=>x.id===h); if(a&&a.url) apriLink(a.url); } });
+canvas.addEventListener('pointerup',e=>{ trascina=null; if(!mosso){ const h=colpito(e); if(!h) return; if(String(h).startsWith('luna:')){ const [,id,k]=h.split(':'); const l=APPS.find(x=>x.id===id)?.lune?.[+k]; if(l&&l.url) apriLink(l.url); return; } seleziona(h); } });
+canvas.addEventListener('dblclick',e=>{ const h=colpito(e); if(h&&h!=='sole'&&!String(h).startsWith('luna:')){ const a=APPS.find(x=>x.id===h); if(a) entra(a); } });
 canvas.addEventListener('wheel',e=>{ e.preventDefault(); obiettivo.dist=Math.min(260,Math.max(8,obiettivo.dist*(1+e.deltaY*.001))); },{passive:false});
 const ray=new THREE.Raycaster(), mv=new THREE.Vector2();
 function colpito(e){ const b=canvas.getBoundingClientRect(); mv.set((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1);
-  ray.setFromCamera(mv,camera); const h=ray.intersectObjects(cliccabili,false)[0]; if(!h) return null; return h.object.userData.tipo==='sole'?'sole':h.object.userData.id; }
+  ray.setFromCamera(mv,camera); const h=ray.intersectObjects(cliccabili,false)[0]; if(!h) return null; const u=h.object.userData; return u.tipo==='sole'?'sole':u.tipo==='luna'?'luna:'+u.id+':'+u.k:u.id; }
+function apriPorte(a){
+  $('porteNome').textContent=`${a.ico||''} ${a.nome}`;
+  const r=$('porteRiga'); r.replaceChildren();
+  const porta=(ico,tit,desc,url,glow,nota)=>{ const el=document.createElement('a'); el.className='porta'; el.href=url; el.target='_blank'; el.rel='noopener'; el.style.setProperty('--glow',glow);
+    const i=document.createElement('div'); i.className='pi'; i.textContent=ico; const b=document.createElement('b'); b.textContent=tit; const s=document.createElement('span'); s.textContent=desc; const n=document.createElement('i'); n.textContent=nota;
+    el.append(i,b,s,n); el.addEventListener('click',()=>chiudiPorte()); r.append(el); return el; };
+  const prima=porta(a.ico||'🪐',"Entra nell'app",a.desc||'',a.url,GRUPPI[a.gr]?.col||'#ffb547','PIANETA ↗');
+  (a.lune||[]).forEach(l=>{ if(l.url) porta(l.ico||'🌙',l.titolo||l.nome,l.desc||'',l.url,'#34d399','LUNA ↗'); });
+  $('porte').classList.add('vis'); setTimeout(()=>prima.focus(),30);
+}
+function chiudiPorte(){ $('porte').classList.remove('vis'); }
+$('porteChiudi').onclick=chiudiPorte;
+$('porte').addEventListener('click',e=>{ if(e.target.id==='porte') chiudiPorte(); });
+// apre l'app, oppure la doppia porta se il pianeta ha delle lune
+function entra(a){ if(a.lune&&a.lune.some(l=>l.url)) apriPorte(a); else if(a.url) apriLink(a.url); else seleziona(a.id); }
 function apriLink(u){ const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }
 
 function seleziona(id){
@@ -368,7 +415,9 @@ function mostraDettaglio(a){
   const g=GRUPPI[a.gr]||{nome:'',col:'#888'};
   $('dIco').textContent=a.ico||'•'; $('dIco').style.background=hexA(g.col,.18); $('dIco').style.boxShadow=`0 0 0 1px ${hexA(g.col,.45)}`;
   $('dNome').textContent=a.nome; $('dGr').textContent=g.nome; $('dGr').style.color=g.col; $('dDesc').textContent=a.desc||'';
-  const ap=$('dApri'); if(a.url){ ap.href=a.url; ap.classList.remove('no'); ap.textContent="Apri l'app ↗"; } else { ap.removeAttribute('href'); ap.classList.add('no'); ap.textContent='Link da aggiungere'; }
+  const ap=$('dApri'); if(a.url){ ap.href=a.url; ap.classList.remove('no'); ap.textContent=(a.lune&&a.lune.length?(a.ico||'')+" Entra nell'app ↗":"Apri l'app ↗"); } else { ap.removeAttribute('href'); ap.classList.add('no'); ap.textContent='Link da aggiungere'; }
+  ap.parentNode.querySelectorAll('.apri.luna').forEach(x=>x.remove());
+  (a.lune||[]).forEach(l=>{ if(!l.url) return; const b=document.createElement('a'); b.className='apri luna'; b.href=l.url; b.target='_blank'; b.rel='noopener'; b.textContent=`${l.ico||'🌙'} ${l.titolo||l.nome} ↗`; ap.after(b); });
   $('dett').classList.add('vis');
 }
 function disegnaLista(){
@@ -380,13 +429,13 @@ function disegnaLista(){
     voci.forEach(a=>{ h+=`<div class="voce${a.id===selezionata?' sel':''}" data-id="${a.id}"><div class="ic" style="background:${hexA(g.col,.15)}">${a.ico||'•'}</div><div style="min-width:0"><div class="n">${esc(a.nome)}</div><div class="s">${esc(a.desc)}</div></div>${a.url?'':'<span class="senza">senza link</span>'}</div>`; });
   });
   $('lista').innerHTML=h||'<div class="gr">Nessuna app trovata</div>';
-  $('lista').querySelectorAll('.voce').forEach(v=>{ v.onclick=()=>seleziona(v.dataset.id); v.ondblclick=()=>{ const a=APPS.find(x=>x.id===v.dataset.id); if(a&&a.url) apriLink(a.url); }; });
+  $('lista').querySelectorAll('.voce').forEach(v=>{ v.onclick=()=>seleziona(v.dataset.id); v.ondblclick=()=>{ const a=APPS.find(x=>x.id===v.dataset.id); if(a) entra(a); }; });
 }
 $('cerca').addEventListener('input',e=>{ cerca=e.target.value; disegnaLista(); });
 $('cerca').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const v=$('lista').querySelector('.voce'); if(v) seleziona(v.dataset.id); } if(e.key==='Escape'){ e.target.value=''; cerca=''; disegnaLista(); e.target.blur(); } });
 addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-  if(e.key==='/'){ e.preventDefault(); $('cerca').focus(); } if(e.key==='Escape'){ if($('velo').classList.contains('vis')) chiudi(); else vistaInsieme(); }
-  if(e.key==='Enter'&&selezionata){ const a=APPS.find(x=>x.id===selezionata); if(a&&a.url) apriLink(a.url); } });
+  if(e.key==='/'){ e.preventDefault(); $('cerca').focus(); } if(e.key==='Escape'){ if($('porte').classList.contains('vis')){ chiudiPorte(); return; } if($('velo').classList.contains('vis')) chiudi(); else vistaInsieme(); }
+  if(e.key==='Enter'&&selezionata){ const a=APPS.find(x=>x.id===selezionata); if(a) entra(a); } });
 
 /* ---------- AGGIUNGI / MODIFICA ---------- */
 let inModifica=null;
@@ -444,6 +493,7 @@ function anima(t){
   pianeti.forEach((p,i)=>{
     p.perno.position.set(Math.cos(p.angolo)*p.orbita,Math.sin(p.angolo*1.3+i)*.6,Math.sin(p.angolo)*p.orbita);
     p.corpo.rotation.y+=dt*.12;
+    (p.lune||[]).forEach(l=>{ l.ang+=dt*.45; const y=Math.sin(l.ang)*l.raggio*Math.sin(.35); l.m.position.set(Math.cos(l.ang)*l.raggio,-y,Math.sin(l.ang)*l.raggio*Math.cos(.35)); });
     const on=p.app.id===selezionata; p.sel.material.opacity+=((on?.85:0)-p.sel.material.opacity)*.12; p.sel.lookAt(camera.position);
   });
   sole.rotation.y+=dt*.03; const pulsa=1+Math.sin(t*.0012)*.04; alone1.scale.set(30*pulsa,30*pulsa,1);
@@ -466,6 +516,9 @@ function anima(t){
     const off=!!q && !(p.app.nome+' '+p.app.desc).toLowerCase().includes(q);
     p.et.classList.toggle('off',off);
     if(!dietro&&!fuori) visibili.push({p,x,y,z:tmp.z,pri:p.app.id===selezionata?0:off?2:1});
+    (p.lune||[]).forEach(l=>{ l.m.getWorldPosition(tmp); tmp.y-=l.lr*1.6; tmp.project(camera);
+      const lx=(tmp.x*.5+.5)*w, ly=(-tmp.y*.5+.5)*h, nasc=tmp.z>1||lx<zona.x||lx>zona.x+zona.w||ly>zona.y+zona.h||off;
+      l.et.style.display=nasc?'none':''; l.et.style.left=lx+'px'; l.et.style.top=ly+'px'; });
   });
   // nomi leggibili: se due si sovrappongono resta quello selezionato, poi il più vicino
   visibili.sort((a,b)=>a.pri-b.pri||a.z-b.z);
