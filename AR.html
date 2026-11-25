@@ -197,8 +197,12 @@ const BASE = [
   { id:'github',  nome:'GitHub',              ico:'🐙', gr:'strum',tipo:'ghiaccio', url:'https://github.com/romagnuoloantonio85-cyber', desc:'I tuoi repository, tra cui AR Nova.' },
   { id:'bplan',   nome:'Business plan AR Digital Marketer', ico:'📈', gr:'doc', tipo:'terra', url:'https://claude.ai/artifact/Rcm9TUgFEkrHMYhcp3ADnk', desc:'Il business plan di AR Digital Marketer.' },
   { id:'welfare', nome:'Piano Welfare FR',    ico:'🤝', gr:'doc',  tipo:'gas',      url:'https://claude.ai/artifact/DzaxdGqnwG7wNy5LKSw7gG', desc:'Il piano welfare per FR Group.' },
-  { id:'ttbest',  nome:'TikTok Best Video',   ico:'🏆', gr:'mkt',  tipo:'lava',     url:'https://claude.ai/artifact/Mwo6gjPkcjbPN7CwtAo5He', desc:'Bookmarklet per trovare i video TikTok migliori.' }
+  { id:'ttbest',  nome:'TikTok Best Video',   ico:'🏆', gr:'mkt',  tipo:'lava',     url:'https://claude.ai/artifact/Mwo6gjPkcjbPN7CwtAo5He', desc:'Bookmarklet per trovare i video TikTok migliori.' },
+  // novità v4
+  { id:'campagnaferie', nome:'Campagna Ferie e Permessi', ico:'📈', gr:'ads', tipo:'marte', url:'https://claude.ai/artifact/WpTgsZQYzQ1ecKobMbBXMC', desc:'Come va la campagna Meta di Richiesta Ferie e Permessi: spesa, visite, persone arrivate nell\'app e iscrizioni, dal vivo.' }
 ];
+// app nuove di ogni versione: compaiono anche a chi ha già la sua lista salvata nel browser (una volta sola)
+const NOVITA = { 'arnova-v4': ['campagnaferie'] };
 const CHIAVE = 'arnova-hub-v3', CHIAVE_V1 = 'arnova-hub-v1';
 let APPS;
 try { APPS = JSON.parse(localStorage.getItem(CHIAVE)) || null; } catch(e) { APPS = null; }
@@ -210,6 +214,12 @@ if (!Array.isArray(APPS)) {
   } catch(e) {}
 }
 function salva(){ try { localStorage.setItem(CHIAVE, JSON.stringify(APPS)); } catch(e){} }
+Object.entries(NOVITA).forEach(([chiave, ids]) => {
+  let fatto = false; try { fatto = localStorage.getItem(chiave) === '1'; } catch(e) {}
+  if (fatto) return;
+  ids.forEach(id => { if (!APPS.some(a => a.id === id)) { const b = BASE.find(x => x.id === id); if (b) APPS.push({...b}); } });
+  salva(); try { localStorage.setItem(chiave, '1'); } catch(e) {}
+});
 
 /* ---------- TEXTURE PROCEDURALI ---------- */
 function rumore(seed){
